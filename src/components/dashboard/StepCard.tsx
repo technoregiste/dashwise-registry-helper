@@ -1,8 +1,14 @@
 
 import React, { useState } from 'react';
-import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import StatusBadge, { StatusType } from './StatusBadge';
+
+interface Document {
+  id: string;
+  name: string;
+  checked: boolean;
+}
 
 interface StepCardProps {
   number: number;
@@ -11,7 +17,17 @@ interface StepCardProps {
   description: string;
   onClick: () => void;
   error?: string;
-  details?: any;
+  details?: {
+    cost?: string;
+    timeframe?: string;
+    requirements?: string[];
+    options?: string[];
+    documents?: Document[];
+    steps?: string[];
+    authorities?: string[];
+    [key: string]: any;
+  };
+  onDocumentToggle?: (stepId: number, docId: string, checked: boolean) => void;
   className?: string;
 }
 
@@ -23,6 +39,7 @@ const StepCard: React.FC<StepCardProps> = ({
   onClick,
   error,
   details,
+  onDocumentToggle,
   className
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -31,6 +48,21 @@ const StepCard: React.FC<StepCardProps> = ({
     e.stopPropagation();
     setExpanded(!expanded);
   };
+
+  const handleDocumentToggle = (e: React.ChangeEvent<HTMLInputElement>, docId: string) => {
+    e.stopPropagation();
+    if (onDocumentToggle) {
+      onDocumentToggle(number, docId, e.target.checked);
+    }
+  };
+
+  const getDocsProgress = () => {
+    if (!details?.documents || details.documents.length === 0) return 0;
+    const checkedDocs = details.documents.filter(doc => doc.checked).length;
+    return Math.round((checkedDocs / details.documents.length) * 100);
+  };
+
+  const docsProgress = getDocsProgress();
 
   return (
     <div 
@@ -86,7 +118,18 @@ const StepCard: React.FC<StepCardProps> = ({
           </button>
           
           {expanded && (
-            <div className="mt-3 p-3 bg-secondary/50 rounded-md text-sm">
+            <div className="mt-3 p-3 bg-secondary/50 rounded-md text-sm space-y-3">
+              {details.steps && (
+                <div className="mb-2">
+                  <span className="font-medium mb-1 block">الخطوات:</span>
+                  <ol className="list-decimal list-inside mr-2 space-y-1">
+                    {details.steps.map((step: string, i: number) => (
+                      <li key={i} className="text-muted-foreground">{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+              
               {details.cost && (
                 <div className="mb-2">
                   <span className="font-medium">التكلفة:</span> {details.cost}
@@ -121,14 +164,39 @@ const StepCard: React.FC<StepCardProps> = ({
                 </div>
               )}
               
-              {details.documents && (
+              {details.documents && details.documents.length > 0 && (
                 <div className="mb-2">
-                  <span className="font-medium">المستندات المطلوبة:</span>
-                  <ul className="list-disc list-inside mt-1 mr-2">
-                    {details.documents.map((doc: string, i: number) => (
-                      <li key={i}>{doc}</li>
+                  <span className="font-medium block mb-2">الوثائق المطلوبة:</span>
+                  <div className="space-y-2 bg-white p-3 rounded-md border border-gray-200">
+                    {details.documents.map((doc) => (
+                      <label key={doc.id} className="flex items-center space-x-2 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={doc.checked} 
+                          onChange={(e) => handleDocumentToggle(e, doc.id)}
+                          className="ml-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm">{doc.name}</span>
+                      </label>
                     ))}
-                  </ul>
+                    
+                    {docsProgress > 0 && (
+                      <div className="mt-3">
+                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={cn(
+                              "h-full",
+                              docsProgress === 100 ? "bg-status-complete" : "bg-status-progress"
+                            )}
+                            style={{ width: `${docsProgress}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-right mt-1 text-muted-foreground">
+                          {docsProgress}% مكتمل
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
               

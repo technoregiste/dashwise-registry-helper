@@ -4,6 +4,12 @@ import { cn } from '@/lib/utils';
 import StepCard from './StepCard';
 import { StatusType } from './StatusBadge';
 
+export interface Document {
+  id: string;
+  name: string;
+  checked: boolean;
+}
+
 export interface StepData {
   id: number;
   title: string;
@@ -15,7 +21,8 @@ export interface StepData {
     timeframe?: string;
     requirements?: string[];
     options?: string[];
-    documents?: string[];
+    documents?: Document[];
+    steps?: string[];
     authorities?: string[];
     [key: string]: any;
   };
@@ -24,12 +31,14 @@ export interface StepData {
 interface RegistrationStepsProps {
   steps: StepData[];
   onStepClick: (stepId: number) => void;
+  onDocumentToggle?: (stepId: number, docId: string, checked: boolean) => void;
   className?: string;
 }
 
 const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   steps,
   onStepClick,
+  onDocumentToggle,
   className
 }) => {
   // Function to determine animation delay based on index
@@ -56,6 +65,7 @@ const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
               error={step.error}
               details={step.details}
               onClick={() => onStepClick(step.id)}
+              onDocumentToggle={onDocumentToggle}
             />
           </div>
         ))}
