@@ -10,25 +10,25 @@ const Index = () => {
       <div className="max-w-3xl w-full text-center animate-fade-in">
         <div className="mb-8">
           <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center mx-auto mb-6">
-            <span className="text-white font-bold text-2xl">R</span>
+            <span className="text-white font-bold text-2xl">ر</span>
           </div>
-          <h1 className="text-4xl font-bold mb-6">Startup Registration Platform</h1>
+          <h1 className="text-4xl font-bold mb-6">منصة تسجيل الشركات الناشئة</h1>
           <p className="text-xl text-muted-foreground mb-8">
-            A streamlined solution for registering your startup in the commercial registry.
+            حل متكامل لتسجيل شركتك الناشئة في السجل التجاري.
           </p>
         </div>
         
         <div className="bg-white rounded-2xl shadow-card p-8 mb-8 max-w-md mx-auto">
-          <h2 className="text-2xl font-semibold mb-6">Welcome to the Platform</h2>
+          <h2 className="text-2xl font-semibold mb-6">مرحباً بك في المنصة</h2>
           <p className="text-muted-foreground mb-6">
-            Our registry helper simplifies the complex process of startup registration, guiding you through each step with clarity and precision.
+            يبسط مساعد التسجيل لدينا عملية تسجيل الشركات الناشئة المعقدة، ويرشدك خلال كل خطوة بوضوح ودقة.
           </p>
           
           <button 
             onClick={() => navigate('/dashboard')}
             className="w-full py-3 px-4 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors button-hover"
           >
-            Go to Dashboard
+            الذهاب إلى لوحة التحكم
           </button>
         </div>
         
@@ -40,8 +40,8 @@ const Index = () => {
               </svg>
             </div>
             <div className="text-left">
-              <h3 className="font-medium">Simple Process</h3>
-              <p className="text-sm text-muted-foreground">Guided step-by-step registration</p>
+              <h3 className="font-medium">عملية بسيطة</h3>
+              <p className="text-sm text-muted-foreground">تسجيل مرشد خطوة بخطوة</p>
             </div>
           </div>
           
@@ -52,8 +52,8 @@ const Index = () => {
               </svg>
             </div>
             <div className="text-left">
-              <h3 className="font-medium">AI Assistance</h3>
-              <p className="text-sm text-muted-foreground">Get help at every step</p>
+              <h3 className="font-medium">مساعد ذكي</h3>
+              <p className="text-sm text-muted-foreground">احصل على المساعدة في كل خطوة</p>
             </div>
           </div>
         </div>

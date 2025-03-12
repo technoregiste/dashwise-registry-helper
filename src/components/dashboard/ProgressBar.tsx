@@ -42,8 +42,8 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
         style={{ width: `${width}%` }}
       />
       <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-        <span>{percentage}% Complete</span>
-        <span>{Math.round((100 - percentage) / 16.67)} steps remaining</span>
+        <span>{percentage}% مكتمل</span>
+        <span>{Math.round((100 - percentage) / 16.67)} خطوات متبقية</span>
       </div>
     </div>
   );

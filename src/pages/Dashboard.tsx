@@ -11,87 +11,87 @@ const Dashboard = () => {
   const [steps, setSteps] = useState<StepData[]>([
     {
       id: 1,
-      title: 'Choosing a Company Name',
+      title: 'اختيار اسم الشركة',
       status: 'complete',
-      description: 'Check name availability through the CNRC. The name must be unique.',
+      description: 'التحقق من توفر الاسم من خلال المركز الوطني للسجل التجاري. يجب أن يكون الاسم فريدًا.',
       details: {
-        cost: '490 DZD',
-        timeframe: '24 hours',
-        requirements: ['Must be unique', 'Avoid resemblance to existing trademarks']
+        cost: '490 دج',
+        timeframe: '24 ساعة',
+        requirements: ['يجب أن يكون فريداً', 'تجنب التشابه مع العلامات التجارية الموجودة']
       }
     },
     {
       id: 2,
-      title: 'Choose a Legal Structure',
+      title: 'اختيار الهيكل القانوني',
       status: 'progress',
-      description: 'Select the appropriate legal structure for your startup.',
+      description: 'اختر الهيكل القانوني المناسب لشركتك الناشئة.',
       details: {
         options: [
-          'SARL (Limited Liability Company) - Most suitable for startups',
-          'SPA (Joint-Stock Company)',
-          'EI (Entreprise Individuelle)',
-          'SNC (Partnership)'
+          'شركة ذات مسؤولية محدودة (SARL) - الأنسب للشركات الناشئة',
+          'شركة مساهمة (SPA)',
+          'مؤسسة فردية (EI)',
+          'شركة تضامن (SNC)'
         ],
-        cost: '5,000 - 20,000 DZD (notary fees)',
-        timeframe: '2-5 days'
+        cost: '5,000 - 20,000 دج (رسوم التوثيق)',
+        timeframe: '2-5 أيام'
       }
     },
     {
       id: 3,
-      title: 'Prepare Required Documents',
+      title: 'تجهيز المستندات المطلوبة',
       status: 'incomplete',
-      description: 'Gather all necessary documents for registration.',
-      error: 'Missing lease contract for company headquarters',
+      description: 'جمع جميع المستندات اللازمة للتسجيل.',
+      error: 'عقد إيجار مقر الشركة مفقود',
       details: {
         documents: [
-          'National ID card',
-          'Name reservation certificate (from CNRC)',
-          'Lease contract or proof of headquarters ownership',
-          'Articles of Association and Bylaws'
+          'بطاقة الهوية الوطنية',
+          'شهادة حجز الاسم (من المركز الوطني للسجل التجاري)',
+          'عقد إيجار أو إثبات ملكية مقر الشركة',
+          'القانون الأساسي للشركة'
         ]
       }
     },
     {
       id: 4,
-      title: 'Prepare Articles of Association',
+      title: 'إعداد القانون الأساسي',
       status: 'incomplete',
-      description: 'Draft the Articles of Association and Bylaws for your startup.',
+      description: 'صياغة القانون الأساسي والنظام الداخلي لشركتك الناشئة.',
       details: {
         requirements: [
-          'Company name and address',
-          'Purpose of the company',
-          'Capital and share distribution',
-          'Management structure',
-          'Consider legal assistance if needed'
+          'اسم وعنوان الشركة',
+          'غرض الشركة',
+          'رأس المال وتوزيع الحصص',
+          'هيكل الإدارة',
+          'الاستعانة بالمساعدة القانونية إذا لزم الأمر'
         ]
       }
     },
     {
       id: 5,
-      title: 'Register with Authorities',
+      title: 'التسجيل لدى الجهات الرسمية',
       status: 'incomplete',
-      description: 'Submit documents to CNRC, CNAS/CASNOS, and Tax Directorate.',
+      description: 'تقديم المستندات إلى المركز الوطني للسجل التجاري، كناس/كاسنوس، ومديرية الضرائب.',
       details: {
         authorities: [
-          'CNRC: Commercial registry certificate',
-          'CNAS/CASNOS: Social security registration',
-          'Tax Directorate: Tax identification number'
+          'المركز الوطني للسجل التجاري: شهادة التسجيل التجاري',
+          'كناس/كاسنوس: التسجيل في الضمان الاجتماعي',
+          'مديرية الضرائب: رقم التعريف الضريبي'
         ],
-        cost: '32,000 DZD (annual CASNOS subscription)',
-        timeframe: '24-48 hours per procedure'
+        cost: '32,000 دج (اشتراك كاسنوس السنوي)',
+        timeframe: '24-48 ساعة لكل إجراء'
       }
     },
     {
       id: 6,
-      title: 'Receive Official Documents',
+      title: 'استلام المستندات الرسمية',
       status: 'incomplete',
-      description: 'Confirm completion and receive all official registration documents.',
+      description: 'تأكيد الانتهاء واستلام جميع مستندات التسجيل الرسمية.',
       details: {
         documents: [
-          'Commercial Registration Certificate',
-          'Tax Identification Card',
-          'Statistical Identification Certificate',
-          'Social Security Registration Certificate'
+          'شهادة التسجيل التجاري',
+          'بطاقة التعريف الضريبي',
+          'شهادة التعريف الإحصائي',
+          'شهادة التسجيل في الضمان الاجتماعي'
         ]
       }
     }
@@ -113,13 +113,13 @@ const Dashboard = () => {
     if (step) {
       if (step.status === 'complete') {
         toast({
-          title: `Step ${stepId}: ${step.title}`,
-          description: "This step has been completed. You can review or edit your information.",
+          title: `الخطوة ${stepId}: ${step.title}`,
+          description: "تم إكمال هذه الخطوة. يمكنك مراجعة أو تعديل المعلومات الخاصة بك.",
         });
       } else {
         toast({
-          title: `Step ${stepId}: ${step.title}`,
-          description: "Let's complete this step now.",
+          title: `الخطوة ${stepId}: ${step.title}`,
+          description: "لنكمل هذه الخطوة الآن.",
         });
       }
     }
@@ -129,8 +129,8 @@ const Dashboard = () => {
   useEffect(() => {
     setTimeout(() => {
       toast({
-        title: "Welcome to Your Dashboard",
-        description: "Continue your registration process. You're making good progress!",
+        title: "مرحباً بك في لوحة التحكم",
+        description: "استمر في عملية التسجيل. أنت تحرز تقدماً جيداً!",
       });
     }, 1000);
   }, []);
@@ -138,7 +138,7 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col min-h-screen bg-secondary/30">
       <Header 
-        startupName="TechVista Labs"
+        startupName="تك فيستا لابز"
         progressPercentage={progressPercentage}
       />
       
@@ -146,9 +146,9 @@ const Dashboard = () => {
         <div className="space-y-8">
           <MetricsPanel
             completionPercentage={progressPercentage}
-            estimatedTime="5 days, 12 hours"
+            estimatedTime="5 أيام، 12 ساعة"
             daysRemaining={14}
-            estimatedCost="38,000 DZD"
+            estimatedCost="38,000 دج"
           />
           
           <RegistrationSteps 
@@ -157,22 +157,22 @@ const Dashboard = () => {
           />
 
           <div className="bg-white rounded-xl shadow-card p-6 animate-fade-in">
-            <h2 className="text-xl font-semibold mb-4">Tips and Guidelines</h2>
+            <h2 className="text-xl font-semibold mb-4">نصائح وإرشادات</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-secondary/50 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-primary mb-2">Choosing a Name</h3>
+                <h3 className="text-lg font-medium text-primary mb-2">اختيار الاسم</h3>
                 <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>Ensure uniqueness to avoid rejection</li>
-                  <li>Verify trademark conflicts beforehand</li>
-                  <li>Choose a name that reflects your brand identity</li>
+                  <li>تأكد من فرادة الاسم لتجنب الرفض</li>
+                  <li>تحقق من تعارضات العلامات التجارية مسبقاً</li>
+                  <li>اختر اسماً يعكس هوية علامتك التجارية</li>
                 </ul>
               </div>
               <div className="bg-secondary/50 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-primary mb-2">Legal Structure</h3>
+                <h3 className="text-lg font-medium text-primary mb-2">الهيكل القانوني</h3>
                 <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>SARL is recommended for most startups</li>
-                  <li>Minimum capital requirements vary by structure</li>
-                  <li>Consider tax implications of each structure</li>
+                  <li>يوصى بشركة ذات مسؤولية محدودة (SARL) لمعظم الشركات الناشئة</li>
+                  <li>تختلف متطلبات الحد الأدنى لرأس المال حسب الهيكل</li>
+                  <li>ضع في اعتبارك الآثار الضريبية لكل هيكل</li>
                 </ul>
               </div>
             </div>

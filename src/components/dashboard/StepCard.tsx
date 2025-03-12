@@ -62,7 +62,7 @@ const StepCard: React.FC<StepCardProps> = ({
       
       {error && (
         <div className="mb-4 p-3 bg-status-incomplete/10 border border-status-incomplete/20 rounded-md text-sm text-status-incomplete">
-          <strong>Error:</strong> {error}
+          <strong>خطأ:</strong> {error}
         </div>
       )}
 
@@ -75,12 +75,12 @@ const StepCard: React.FC<StepCardProps> = ({
             {expanded ? (
               <>
                 <ChevronUp size={16} className="mr-1" />
-                Hide Details
+                إخفاء التفاصيل
               </>
             ) : (
               <>
                 <ChevronDown size={16} className="mr-1" />
-                View Details
+                عرض التفاصيل
               </>
             )}
           </button>
@@ -89,20 +89,20 @@ const StepCard: React.FC<StepCardProps> = ({
             <div className="mt-3 p-3 bg-secondary/50 rounded-md text-sm">
               {details.cost && (
                 <div className="mb-2">
-                  <span className="font-medium">Cost:</span> {details.cost}
+                  <span className="font-medium">التكلفة:</span> {details.cost}
                 </div>
               )}
               
               {details.timeframe && (
                 <div className="mb-2">
-                  <span className="font-medium">Timeframe:</span> {details.timeframe}
+                  <span className="font-medium">الإطار الزمني:</span> {details.timeframe}
                 </div>
               )}
               
               {details.requirements && (
                 <div className="mb-2">
-                  <span className="font-medium">Requirements:</span>
-                  <ul className="list-disc list-inside mt-1 ml-2">
+                  <span className="font-medium">المتطلبات:</span>
+                  <ul className="list-disc list-inside mt-1 mr-2">
                     {details.requirements.map((req: string, i: number) => (
                       <li key={i}>{req}</li>
                     ))}
@@ -112,8 +112,8 @@ const StepCard: React.FC<StepCardProps> = ({
               
               {details.options && (
                 <div className="mb-2">
-                  <span className="font-medium">Options:</span>
-                  <ul className="list-disc list-inside mt-1 ml-2">
+                  <span className="font-medium">الخيارات:</span>
+                  <ul className="list-disc list-inside mt-1 mr-2">
                     {details.options.map((opt: string, i: number) => (
                       <li key={i}>{opt}</li>
                     ))}
@@ -123,8 +123,8 @@ const StepCard: React.FC<StepCardProps> = ({
               
               {details.documents && (
                 <div className="mb-2">
-                  <span className="font-medium">Required Documents:</span>
-                  <ul className="list-disc list-inside mt-1 ml-2">
+                  <span className="font-medium">المستندات المطلوبة:</span>
+                  <ul className="list-disc list-inside mt-1 mr-2">
                     {details.documents.map((doc: string, i: number) => (
                       <li key={i}>{doc}</li>
                     ))}
@@ -134,8 +134,8 @@ const StepCard: React.FC<StepCardProps> = ({
               
               {details.authorities && (
                 <div className="mb-2">
-                  <span className="font-medium">Authorities:</span>
-                  <ul className="list-disc list-inside mt-1 ml-2">
+                  <span className="font-medium">الجهات الرسمية:</span>
+                  <ul className="list-disc list-inside mt-1 mr-2">
                     {details.authorities.map((auth: string, i: number) => (
                       <li key={i}>{auth}</li>
                     ))}
@@ -158,8 +158,8 @@ const StepCard: React.FC<StepCardProps> = ({
               : "bg-secondary text-foreground hover:bg-secondary/80"
         )}
       >
-        {status === 'complete' ? 'View Details' : 'Complete Step'}
-        <ArrowRight size={16} className="ml-1.5" />
+        {status === 'complete' ? 'عرض التفاصيل' : 'إكمال الخطوة'}
+        <ArrowRight size={16} className="mr-1.5" />
       </button>
     </div>
   );

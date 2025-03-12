@@ -10,7 +10,7 @@ interface AiAssistantProps {
 const AiAssistant: React.FC<AiAssistantProps> = ({ className }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{text: string, isUser: boolean}[]>([
-    { text: "Hello! I'm your registration assistant. How can I help you with your startup registration in Algeria?", isUser: false }
+    { text: "مرحباً! أنا مساعدك في تسجيل الشركة. كيف يمكنني مساعدتك في تسجيل شركتك الناشئة في الجزائر؟", isUser: false }
   ]);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -31,34 +31,34 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ className }) => {
     
     // Simulate AI response with more detailed Algerian-specific answers
     setTimeout(() => {
-      let response = "I'm processing your request. How else can I assist you with your startup registration in Algeria?";
+      let response = "أقوم بمعالجة طلبك. كيف يمكنني مساعدتك في تسجيل شركتك الناشئة في الجزائر؟";
       
       // Pattern matching for Algerian startup registration process
       const input = inputValue.toLowerCase();
       
-      if (input.includes('document') || input.includes('papers') || input.includes('file')) {
-        response = "For startup registration in Algeria, you'll need: National ID card, name reservation certificate from CNRC, lease contract for headquarters, and articles of association. All documents should be in PDF format and certified when required.";
+      if (input.includes('وثائق') || input.includes('مستندات') || input.includes('أوراق')) {
+        response = "لتسجيل شركة ناشئة في الجزائر، ستحتاج إلى: بطاقة الهوية الوطنية، شهادة حجز الاسم من المركز الوطني للسجل التجاري، عقد إيجار المقر، والقانون الأساسي للشركة. يجب أن تكون جميع المستندات بصيغة PDF ومصدقة عند الضرورة.";
       } 
-      else if (input.includes('deadline') || input.includes('time') || input.includes('how long')) {
-        response = "The complete startup registration process in Algeria typically takes 7-14 days. The CNRC certificate takes about 24 hours, CASNOS registration 48 hours, and tax registration 24-48 hours. It's recommended to complete one step every 2-3 days to stay on track.";
+      else if (input.includes('موعد') || input.includes('مدة') || input.includes('كم يستغرق')) {
+        response = "تستغرق عملية تسجيل الشركات الناشئة في الجزائر عادة 7-14 يومًا. تستغرق شهادة السجل التجاري حوالي 24 ساعة، وتسجيل الضمان الاجتماعي 48 ساعة، والتسجيل الضريبي 24-48 ساعة. ينصح بإكمال خطوة واحدة كل 2-3 أيام للبقاء على المسار الصحيح.";
       } 
-      else if (input.includes('payment') || input.includes('cost') || input.includes('fee') || input.includes('price')) {
-        response = "Registration costs in Algeria include: Name reservation (490 DZD), notary fees (5,000-20,000 DZD), CNRC registration fee (varies by capital), and annual CASNOS subscription (approximately 32,000 DZD). The total typically ranges from 38,000-50,000 DZD depending on your legal structure and capital.";
+      else if (input.includes('دفع') || input.includes('تكلفة') || input.includes('رسوم') || input.includes('سعر')) {
+        response = "تكاليف التسجيل في الجزائر تشمل: حجز الاسم (490 دج)، رسوم التوثيق (5000-20000 دج)، رسوم السجل التجاري (تختلف حسب رأس المال)، واشتراك كاسنوس السنوي (حوالي 32000 دج). يتراوح المجموع عادة بين 38000-50000 دج حسب الهيكل القانوني ورأس المال.";
       }
-      else if (input.includes('legal') || input.includes('structure') || input.includes('sarl') || input.includes('company type')) {
-        response = "For startups in Algeria, SARL (Limited Liability Company) is the most common choice. The minimum capital is 100,000 DZD, and liability is limited to your investment. SPA requires 1,000,000 DZD minimum capital. EI (Entreprise Individuelle) has no minimum capital but offers no separation between personal and business assets.";
+      else if (input.includes('قانوني') || input.includes('هيكل') || input.includes('ش.ذ.م.م') || input.includes('نوع الشركة')) {
+        response = "للشركات الناشئة في الجزائر، شركة ذات مسؤولية محدودة (SARL) هي الخيار الأكثر شيوعًا. الحد الأدنى لرأس المال هو 100000 دج، والمسؤولية محدودة باستثمارك. تتطلب شركة المساهمة (SPA) حدًا أدنى لرأس المال قدره 1000000 دج. المؤسسة الفردية (EI) ليس لها حد أدنى لرأس المال لكنها لا توفر فصلاً بين الأصول الشخصية وأصول الشركة.";
       }
-      else if (input.includes('cnrc') || input.includes('commercial register')) {
-        response = "The CNRC (National Commercial Registry Center) handles company name reservation and commercial registration. The process takes approximately 24 hours for name reservation and another 24 hours for commercial registration. You'll need to submit your notarized articles of association and proof of headquarters.";
+      else if (input.includes('سجل تجاري') || input.includes('المركز الوطني')) {
+        response = "يتعامل المركز الوطني للسجل التجاري (CNRC) مع حجز اسم الشركة والتسجيل التجاري. تستغرق العملية حوالي 24 ساعة لحجز الاسم و24 ساعة أخرى للتسجيل التجاري. ستحتاج إلى تقديم القانون الأساسي الموثق وإثبات المقر.";
       }
-      else if (input.includes('tax') || input.includes('impôt') || input.includes('fiscal')) {
-        response = "After CNRC registration, you must register with the Tax Directorate (Direction des Impôts) to obtain your tax identification number (NIF). This process takes 24-48 hours. You'll need your commercial registration certificate, ID, and articles of association. You'll also need to choose your tax regime.";
+      else if (input.includes('ضرائب') || input.includes('ضريبة') || input.includes('جبائي')) {
+        response = "بعد التسجيل في السجل التجاري، يجب عليك التسجيل لدى مديرية الضرائب للحصول على رقم التعريف الضريبي (NIF). تستغرق هذه العملية 24-48 ساعة. ستحتاج إلى شهادة التسجيل التجاري وبطاقة الهوية والقانون الأساسي. كما ستحتاج إلى اختيار النظام الضريبي الخاص بك.";
       }
-      else if (input.includes('cnas') || input.includes('casnos') || input.includes('social security')) {
-        response = "As a business owner in Algeria, you must register with CASNOS (for entrepreneurs) within 10 days of starting your activity. The annual subscription is approximately 32,000 DZD. If you have employees, you must also register them with CNAS within 10 days of hiring.";
+      else if (input.includes('كناس') || input.includes('كاسنوس') || input.includes('ضمان اجتماعي')) {
+        response = "كصاحب عمل في الجزائر، يجب عليك التسجيل في كاسنوس (للمقاولين) في غضون 10 أيام من بدء نشاطك. الاشتراك السنوي حوالي 32000 دج. إذا كان لديك موظفون، يجب عليك أيضًا تسجيلهم في كناس في غضون 10 أيام من التوظيف.";
       }
-      else if (input.includes('startup label') || input.includes('startup status')) {
-        response = "After completing the basic registration, you can apply for the 'Startup Label' which offers tax benefits and access to funding. Submit your application to the National Agency for the Promotion and Development of Technology Parks (ANPT). You'll need to demonstrate innovative aspects of your business.";
+      else if (input.includes('وسم الشركة الناشئة') || input.includes('صفة الشركة الناشئة')) {
+        response = "بعد إكمال التسجيل الأساسي، يمكنك التقدم للحصول على 'وسم الشركة الناشئة' الذي يوفر مزايا ضريبية والوصول إلى التمويل. قدم طلبك إلى الوكالة الوطنية لترقية وتطوير الحظائر التكنولوجية (ANPT). ستحتاج إلى إظهار الجوانب المبتكرة لعملك.";
       }
       
       setMessages(prev => [...prev, { text: response, isUser: false }]);
@@ -84,7 +84,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ className }) => {
           !isOpen && "animate-pulse-light",
           className
         )}
-        aria-label="Open AI Assistant"
+        aria-label="فتح المساعد الذكي"
       >
         <MessageSquare size={24} />
       </button>
@@ -96,7 +96,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ className }) => {
           <div className="p-4 bg-primary text-white flex justify-between items-center">
             <div className="flex items-center">
               <MessageSquare size={20} className="mr-2" />
-              <h3 className="font-medium">Startup Registration Assistant</h3>
+              <h3 className="font-medium">مساعد تسجيل الشركات الناشئة</h3>
             </div>
             <button 
               onClick={() => setIsOpen(false)}
@@ -131,7 +131,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ className }) => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about registration steps..."
+                placeholder="اسأل عن خطوات التسجيل..."
                 className="flex-1 px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-1 focus:ring-primary resize-none max-h-24"
                 rows={1}
               />

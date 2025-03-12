@@ -21,20 +21,20 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
   const metrics = [
     {
       icon: PercentIcon,
-      label: 'Overall Progress',
-      value: `${completionPercentage}% Complete`,
+      label: 'التقدم الإجمالي',
+      value: `${completionPercentage}% مكتمل`,
       color: 'text-status-progress'
     },
     {
       icon: ClockIcon,
-      label: 'Estimated Time',
+      label: 'الوقت المقدر',
       value: estimatedTime,
       color: 'text-indigo-500'
     },
     {
       icon: CalendarIcon,
-      label: 'Days Remaining',
-      value: `${daysRemaining} Days`,
+      label: 'الأيام المتبقية',
+      value: `${daysRemaining} يوم`,
       color: daysRemaining <= 5 ? 'text-status-incomplete' : 'text-status-complete'
     }
   ];
@@ -43,7 +43,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
   if (estimatedCost) {
     metrics.push({
       icon: DollarSign,
-      label: 'Estimated Cost',
+      label: 'التكلفة المقدرة',
       value: estimatedCost,
       color: 'text-amber-500'
     });
@@ -54,7 +54,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
       "bg-white rounded-xl shadow-card p-6 animate-fade-in",
       className
     )}>
-      <h2 className="text-lg font-semibold mb-4">Registration Progress</h2>
+      <h2 className="text-lg font-semibold mb-4">تقدم التسجيل</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => (

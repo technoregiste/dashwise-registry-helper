@@ -25,23 +25,23 @@ const Header: React.FC<HeaderProps> = ({
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
-            <span className="text-white font-semibold text-lg">R</span>
+            <span className="text-white font-semibold text-lg">ر</span>
           </div>
           <h1 className="text-xl font-semibold">
-            Registry Helper
+            مساعد التسجيل
           </h1>
         </div>
         
         <div className="flex items-center space-x-6">
           <div className="text-right hidden md:block">
-            <p className="text-sm text-muted-foreground">Startup</p>
+            <p className="text-sm text-muted-foreground">الشركة الناشئة</p>
             <p className="font-medium">{startupName}</p>
           </div>
           <button 
             onClick={() => {}} 
             className="btn px-4 py-2 bg-secondary text-foreground rounded-md hover:bg-secondary/80 transition-colors button-hover"
           >
-            Help
+            مساعدة
           </button>
         </div>
       </div>

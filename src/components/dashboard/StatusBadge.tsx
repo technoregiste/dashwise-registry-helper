@@ -17,21 +17,21 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
       bgColor: 'bg-status-complete/10',
       textColor: 'text-status-complete',
       borderColor: 'border-status-complete/30',
-      label: 'Completed'
+      label: 'مكتمل'
     },
     progress: {
       icon: Clock,
       bgColor: 'bg-status-progress/10',
       textColor: 'text-status-progress',
       borderColor: 'border-status-progress/30',
-      label: 'In Progress'
+      label: 'قيد التنفيذ'
     },
     incomplete: {
       icon: X,
       bgColor: 'bg-status-incomplete/10',
       textColor: 'text-status-incomplete',
       borderColor: 'border-status-incomplete/30',
-      label: 'Incomplete'
+      label: 'غير مكتمل'
     }
   };
 
