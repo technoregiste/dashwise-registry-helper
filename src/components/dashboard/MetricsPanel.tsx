@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { PercentIcon, ClockIcon, CalendarIcon } from 'lucide-react';
+import { PercentIcon, ClockIcon, CalendarIcon, DollarSign } from 'lucide-react';
 
 interface MetricsPanelProps {
   completionPercentage: number;
   estimatedTime: string;
   daysRemaining: number;
+  estimatedCost?: string;
   className?: string;
 }
 
@@ -14,6 +15,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
   completionPercentage,
   estimatedTime,
   daysRemaining,
+  estimatedCost,
   className
 }) => {
   const metrics = [
@@ -37,6 +39,16 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
     }
   ];
 
+  // Add estimated cost if provided
+  if (estimatedCost) {
+    metrics.push({
+      icon: DollarSign,
+      label: 'Estimated Cost',
+      value: estimatedCost,
+      color: 'text-amber-500'
+    });
+  }
+
   return (
     <div className={cn(
       "bg-white rounded-xl shadow-card p-6 animate-fade-in",
@@ -44,7 +56,7 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
     )}>
       <h2 className="text-lg font-semibold mb-4">Registration Progress</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => (
           <div 
             key={index}

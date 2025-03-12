@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import StatusBadge, { StatusType } from './StatusBadge';
 
@@ -11,6 +11,7 @@ interface StepCardProps {
   description: string;
   onClick: () => void;
   error?: string;
+  details?: any;
   className?: string;
 }
 
@@ -21,8 +22,16 @@ const StepCard: React.FC<StepCardProps> = ({
   description,
   onClick,
   error,
+  details,
   className
 }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  };
+
   return (
     <div 
       className={cn(
@@ -49,11 +58,92 @@ const StepCard: React.FC<StepCardProps> = ({
         <StatusBadge status={status} />
       </div>
       
-      <p className="text-sm text-muted-foreground mb-4 flex-grow">{description}</p>
+      <p className="text-sm text-muted-foreground mb-4">{description}</p>
       
       {error && (
         <div className="mb-4 p-3 bg-status-incomplete/10 border border-status-incomplete/20 rounded-md text-sm text-status-incomplete">
           <strong>Error:</strong> {error}
+        </div>
+      )}
+
+      {details && (
+        <div className="mb-4">
+          <button 
+            onClick={toggleExpand}
+            className="flex items-center text-sm text-primary font-medium hover:underline"
+          >
+            {expanded ? (
+              <>
+                <ChevronUp size={16} className="mr-1" />
+                Hide Details
+              </>
+            ) : (
+              <>
+                <ChevronDown size={16} className="mr-1" />
+                View Details
+              </>
+            )}
+          </button>
+          
+          {expanded && (
+            <div className="mt-3 p-3 bg-secondary/50 rounded-md text-sm">
+              {details.cost && (
+                <div className="mb-2">
+                  <span className="font-medium">Cost:</span> {details.cost}
+                </div>
+              )}
+              
+              {details.timeframe && (
+                <div className="mb-2">
+                  <span className="font-medium">Timeframe:</span> {details.timeframe}
+                </div>
+              )}
+              
+              {details.requirements && (
+                <div className="mb-2">
+                  <span className="font-medium">Requirements:</span>
+                  <ul className="list-disc list-inside mt-1 ml-2">
+                    {details.requirements.map((req: string, i: number) => (
+                      <li key={i}>{req}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {details.options && (
+                <div className="mb-2">
+                  <span className="font-medium">Options:</span>
+                  <ul className="list-disc list-inside mt-1 ml-2">
+                    {details.options.map((opt: string, i: number) => (
+                      <li key={i}>{opt}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {details.documents && (
+                <div className="mb-2">
+                  <span className="font-medium">Required Documents:</span>
+                  <ul className="list-disc list-inside mt-1 ml-2">
+                    {details.documents.map((doc: string, i: number) => (
+                      <li key={i}>{doc}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {details.authorities && (
+                <div className="mb-2">
+                  <span className="font-medium">Authorities:</span>
+                  <ul className="list-disc list-inside mt-1 ml-2">
+                    {details.authorities.map((auth: string, i: number) => (
+                      <li key={i}>{auth}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       

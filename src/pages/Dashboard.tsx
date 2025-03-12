@@ -7,44 +7,93 @@ import AiAssistant from '@/components/ai/AiAssistant';
 import { toast } from '@/hooks/use-toast';
 
 const Dashboard = () => {
-  // Mock data for the dashboard
+  // Enhanced data for the Algerian Startup Registration process
   const [steps, setSteps] = useState<StepData[]>([
     {
       id: 1,
-      title: 'Select Company Type',
+      title: 'Choosing a Company Name',
       status: 'complete',
-      description: 'Choose the type of company that best suits your business model and goals.'
+      description: 'Check name availability through the CNRC. The name must be unique.',
+      details: {
+        cost: '490 DZD',
+        timeframe: '24 hours',
+        requirements: ['Must be unique', 'Avoid resemblance to existing trademarks']
+      }
     },
     {
       id: 2,
-      title: 'Add Founder Information',
+      title: 'Choose a Legal Structure',
       status: 'progress',
-      description: 'Add personal and contact details for all company founders.'
+      description: 'Select the appropriate legal structure for your startup.',
+      details: {
+        options: [
+          'SARL (Limited Liability Company) - Most suitable for startups',
+          'SPA (Joint-Stock Company)',
+          'EI (Entreprise Individuelle)',
+          'SNC (Partnership)'
+        ],
+        cost: '5,000 - 20,000 DZD (notary fees)',
+        timeframe: '2-5 days'
+      }
     },
     {
       id: 3,
-      title: 'Upload Required Documents',
+      title: 'Prepare Required Documents',
       status: 'incomplete',
-      description: 'Upload all required legal documents and business plans.',
-      error: 'Business registration certificate is missing'
+      description: 'Gather all necessary documents for registration.',
+      error: 'Missing lease contract for company headquarters',
+      details: {
+        documents: [
+          'National ID card',
+          'Name reservation certificate (from CNRC)',
+          'Lease contract or proof of headquarters ownership',
+          'Articles of Association and Bylaws'
+        ]
+      }
     },
     {
       id: 4,
-      title: 'Review Data and Confirm',
-      status: 'progress',
-      description: 'Review all entered information and confirm its accuracy.'
+      title: 'Prepare Articles of Association',
+      status: 'incomplete',
+      description: 'Draft the Articles of Association and Bylaws for your startup.',
+      details: {
+        requirements: [
+          'Company name and address',
+          'Purpose of the company',
+          'Capital and share distribution',
+          'Management structure',
+          'Consider legal assistance if needed'
+        ]
+      }
     },
     {
       id: 5,
-      title: 'Complete Payment',
-      status: 'progress',
-      description: 'Pay registration fees and any additional service charges.'
+      title: 'Register with Authorities',
+      status: 'incomplete',
+      description: 'Submit documents to CNRC, CNAS/CASNOS, and Tax Directorate.',
+      details: {
+        authorities: [
+          'CNRC: Commercial registry certificate',
+          'CNAS/CASNOS: Social security registration',
+          'Tax Directorate: Tax identification number'
+        ],
+        cost: '32,000 DZD (annual CASNOS subscription)',
+        timeframe: '24-48 hours per procedure'
+      }
     },
     {
       id: 6,
-      title: 'Submit Application',
+      title: 'Receive Official Documents',
       status: 'incomplete',
-      description: 'Submit your completed application for processing.'
+      description: 'Confirm completion and receive all official registration documents.',
+      details: {
+        documents: [
+          'Commercial Registration Certificate',
+          'Tax Identification Card',
+          'Statistical Identification Certificate',
+          'Social Security Registration Certificate'
+        ]
+      }
     }
   ]);
 
@@ -97,14 +146,37 @@ const Dashboard = () => {
         <div className="space-y-8">
           <MetricsPanel
             completionPercentage={progressPercentage}
-            estimatedTime="2 hours, 30 minutes"
+            estimatedTime="5 days, 12 hours"
             daysRemaining={14}
+            estimatedCost="38,000 DZD"
           />
           
           <RegistrationSteps 
             steps={steps}
             onStepClick={handleStepClick}
           />
+
+          <div className="bg-white rounded-xl shadow-card p-6 animate-fade-in">
+            <h2 className="text-xl font-semibold mb-4">Tips and Guidelines</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-secondary/50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-primary mb-2">Choosing a Name</h3>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>Ensure uniqueness to avoid rejection</li>
+                  <li>Verify trademark conflicts beforehand</li>
+                  <li>Choose a name that reflects your brand identity</li>
+                </ul>
+              </div>
+              <div className="bg-secondary/50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-primary mb-2">Legal Structure</h3>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>SARL is recommended for most startups</li>
+                  <li>Minimum capital requirements vary by structure</li>
+                  <li>Consider tax implications of each structure</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
       

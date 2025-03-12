@@ -10,6 +10,15 @@ export interface StepData {
   status: StatusType;
   description: string;
   error?: string;
+  details?: {
+    cost?: string;
+    timeframe?: string;
+    requirements?: string[];
+    options?: string[];
+    documents?: string[];
+    authorities?: string[];
+    [key: string]: any;
+  };
 }
 
 interface RegistrationStepsProps {
@@ -45,6 +54,7 @@ const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
               status={step.status}
               description={step.description}
               error={step.error}
+              details={step.details}
               onClick={() => onStepClick(step.id)}
             />
           </div>
