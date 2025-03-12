@@ -10,6 +10,12 @@ export interface Document {
   checked: boolean;
 }
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  checked: boolean;
+}
+
 export interface StepData {
   id: number;
   title: string;
@@ -24,6 +30,8 @@ export interface StepData {
     documents?: Document[];
     steps?: string[];
     authorities?: string[];
+    checklistItems?: ChecklistItem[];
+    notes?: string[];
     [key: string]: any;
   };
 }
@@ -32,6 +40,7 @@ interface RegistrationStepsProps {
   steps: StepData[];
   onStepClick: (stepId: number) => void;
   onDocumentToggle?: (stepId: number, docId: string, checked: boolean) => void;
+  onChecklistToggle?: (stepId: number, itemId: string, checked: boolean) => void;
   className?: string;
 }
 
@@ -39,6 +48,7 @@ const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   steps,
   onStepClick,
   onDocumentToggle,
+  onChecklistToggle,
   className
 }) => {
   // Function to determine animation delay based on index
@@ -66,6 +76,7 @@ const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
               details={step.details}
               onClick={() => onStepClick(step.id)}
               onDocumentToggle={onDocumentToggle}
+              onChecklistToggle={onChecklistToggle}
             />
           </div>
         ))}
