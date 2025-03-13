@@ -9,7 +9,109 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      co_founders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "co_founders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          company_name: string
+          company_number: string
+          created_at: string
+          founder_name: string
+          id: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          company_number: string
+          created_at?: string
+          founder_name: string
+          id: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          company_number?: string
+          created_at?: string
+          founder_name?: string
+          id?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      registration_steps: {
+        Row: {
+          checklist_items: Json | null
+          completed_at: string | null
+          created_at: string
+          documents: Json | null
+          id: string
+          profile_id: string
+          status: string
+          step_id: number
+          updated_at: string
+        }
+        Insert: {
+          checklist_items?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          profile_id: string
+          status?: string
+          step_id: number
+          updated_at?: string
+        }
+        Update: {
+          checklist_items?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          profile_id?: string
+          status?: string
+          step_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_steps_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

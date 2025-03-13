@@ -1,12 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import RegistrationSteps, { StepData, Document, ChecklistItem } from '@/components/dashboard/RegistrationSteps';
 import MetricsPanel from '@/components/dashboard/MetricsPanel';
 import AiAssistant from '@/components/ai/AiAssistant';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  
   // Enhanced data for the Algerian Startup Registration process
   const [steps, setSteps] = useState<StepData[]>([
     {
@@ -240,21 +246,72 @@ const Dashboard = () => {
     }
   ]);
 
+  // Fetch registration steps from database when user profile is loaded
+  useEffect(() => {
+    if (user && profile) {
+      fetchRegistrationSteps();
+    }
+  }, [user, profile]);
+
+  const fetchRegistrationSteps = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('registration_steps')
+        .select('*')
+        .eq('profile_id', user?.id)
+        .order('step_id', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        // Map database data to our steps format
+        setSteps(prevSteps => 
+          prevSteps.map(step => {
+            const dbStep = data.find(d => d.step_id === step.id);
+            if (dbStep) {
+              return {
+                ...step,
+                status: dbStep.status as 'complete' | 'progress' | 'incomplete',
+                details: {
+                  ...step.details,
+                  documents: dbStep.documents as Document[] || step.details?.documents,
+                  checklistItems: dbStep.checklist_items as ChecklistItem[] || step.details?.checklistItems,
+                }
+              };
+            }
+            return step;
+          })
+        );
+      }
+    } catch (error) {
+      console.error('Error fetching registration steps:', error);
+      toast({
+        title: "خطأ في تحميل البيانات",
+        description: "حدث خطأ أثناء محاولة تحميل خطوات التسجيل",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Function to handle document checkbox toggle
-  const handleDocumentToggle = (stepId: number, docId: string, checked: boolean) => {
+  const handleDocumentToggle = async (stepId: number, docId: string, checked: boolean) => {
     setSteps(prevSteps => 
       prevSteps.map(step => {
         if (step.id === stepId && step.details?.documents) {
+          const updatedDocs = step.details.documents.map(doc => {
+            if (doc.id === docId) {
+              return { ...doc, checked };
+            }
+            return doc;
+          });
+          
           return {
             ...step,
             details: {
               ...step.details,
-              documents: step.details.documents.map(doc => {
-                if (doc.id === docId) {
-                  return { ...doc, checked };
-                }
-                return doc;
-              })
+              documents: updatedDocs
             }
           };
         }
@@ -271,24 +328,26 @@ const Dashboard = () => {
     }
 
     // Update step status based on documents and checklist
-    updateStepStatus(stepId);
+    await updateStepStatus(stepId);
   };
 
   // Function to handle checklist item toggle
-  const handleChecklistToggle = (stepId: number, itemId: string, checked: boolean) => {
+  const handleChecklistToggle = async (stepId: number, itemId: string, checked: boolean) => {
     setSteps(prevSteps => 
       prevSteps.map(step => {
         if (step.id === stepId && step.details?.checklistItems) {
+          const updatedItems = step.details.checklistItems.map(item => {
+            if (item.id === itemId) {
+              return { ...item, checked };
+            }
+            return item;
+          });
+          
           return {
             ...step,
             details: {
               ...step.details,
-              checklistItems: step.details.checklistItems.map(item => {
-                if (item.id === itemId) {
-                  return { ...item, checked };
-                }
-                return item;
-              })
+              checklistItems: updatedItems
             }
           };
         }
@@ -305,30 +364,64 @@ const Dashboard = () => {
     }
 
     // Update step status based on documents and checklist
-    updateStepStatus(stepId);
+    await updateStepStatus(stepId);
   };
 
   // Function to update step status based on checklist and document completion
-  const updateStepStatus = (stepId: number) => {
+  const updateStepStatus = async (stepId: number) => {
+    const step = steps.find(s => s.id === stepId);
+    if (!step) return;
+
+    const checklistComplete = step.details?.checklistItems?.every(item => item.checked) ?? false;
+    const documentsComplete = step.details?.documents?.every(doc => doc.checked) ?? false;
+    
+    let newStatus: 'complete' | 'progress' | 'incomplete';
+    
+    // Only mark as complete if both checklist and documents are complete
+    if (checklistComplete && documentsComplete) {
+      newStatus = 'complete';
+    } else if (step.details?.checklistItems?.some(item => item.checked) || 
+              step.details?.documents?.some(doc => doc.checked)) {
+      newStatus = 'progress';
+    } else {
+      newStatus = 'incomplete';
+    }
+
+    // Update state
     setSteps(prevSteps => 
-      prevSteps.map(step => {
-        if (step.id === stepId) {
-          const checklistComplete = step.details?.checklistItems?.every(item => item.checked) ?? false;
-          const documentsComplete = step.details?.documents?.every(doc => doc.checked) ?? false;
-          
-          // Only mark as complete if both checklist and documents are complete
-          if (checklistComplete && documentsComplete) {
-            return { ...step, status: 'complete' };
-          } else if (step.details?.checklistItems?.some(item => item.checked) || 
-                    step.details?.documents?.some(doc => doc.checked)) {
-            return { ...step, status: 'progress' };
-          } else {
-            return { ...step, status: 'incomplete' };
-          }
+      prevSteps.map(s => {
+        if (s.id === stepId) {
+          return { ...s, status: newStatus };
         }
-        return step;
+        return s;
       })
     );
+
+    // Save to database
+    try {
+      const stepToUpdate = steps.find(s => s.id === stepId);
+      if (stepToUpdate && user) {
+        const { error } = await supabase
+          .from('registration_steps')
+          .upsert({
+            profile_id: user.id,
+            step_id: stepId,
+            status: newStatus,
+            documents: stepToUpdate.details?.documents || null,
+            checklist_items: stepToUpdate.details?.checklistItems || null,
+            updated_at: new Date().toISOString(),
+            completed_at: newStatus === 'complete' ? new Date().toISOString() : null
+          })
+          .eq('profile_id', user.id)
+          .eq('step_id', stepId);
+
+        if (error) {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('Error updating registration step:', error);
+    }
   };
 
   // Calculate progress percentage
@@ -462,21 +555,23 @@ const Dashboard = () => {
 
   // Startup information
   const startupInfo = {
-    name: "تك فيستا لابز",
-    founderName: "أحمد محمود",
-    phone: "0550123456",
-    email: "info@techvista.dz"
+    name: profile?.company_name || "شركة ناشئة",
+    founderName: profile?.founder_name || "المؤسس",
+    phone: profile?.phone || "0000000000",
+    email: user?.email || "info@example.com"
   };
 
   // Show welcome toast on initial render
   useEffect(() => {
-    setTimeout(() => {
-      toast({
-        title: "مرحباً بك في لوحة تسجيل الشركة الناشئة",
-        description: "اتبع الخطوات المذكورة لإكمال تسجيل شركتك بنجاح",
-      });
-    }, 1000);
-  }, []);
+    if (profile) {
+      setTimeout(() => {
+        toast({
+          title: `مرحباً بك ${profile.founder_name}`,
+          description: "اتبع الخطوات المذكورة لإكمال تسجيل شركتك بنجاح",
+        });
+      }, 1000);
+    }
+  }, [profile]);
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary/30">

@@ -1,63 +1,93 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
-  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-secondary/30 p-6">
-      <div className="max-w-3xl w-full text-center animate-fade-in">
-        <div className="mb-8">
-          <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center mx-auto mb-6">
-            <span className="text-white font-bold text-2xl">ر</span>
+    <div className="min-h-screen bg-secondary/30 rtl">
+      <header className="bg-white shadow-subtle py-4 px-6">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-3 rtl:space-x-reverse">
+            <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
+              <span className="text-white font-semibold text-lg">ت</span>
+            </div>
+            <h1 className="text-xl font-semibold">تكنوريجستر</h1>
           </div>
-          <h1 className="text-4xl font-bold mb-6">منصة تسجيل الشركات الناشئة</h1>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <>
+                <Button variant="outline" asChild>
+                  <Link to="/dashboard">لوحة التحكم</Link>
+                </Button>
+                <Button variant="ghost" onClick={signOut}>
+                  تسجيل الخروج
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" asChild>
+                  <Link to="/auth/signin">تسجيل الدخول</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/auth/signup">انشاء حساب</Link>
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+      
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl font-bold mb-6">منصة تكنوريجستر لتسجيل الشركات الناشئة</h1>
           <p className="text-xl text-muted-foreground mb-8">
-            حل متكامل لتسجيل شركتك الناشئة في السجل التجاري.
-          </p>
-        </div>
-        
-        <div className="bg-white rounded-2xl shadow-card p-8 mb-8 max-w-md mx-auto">
-          <h2 className="text-2xl font-semibold mb-6">مرحباً بك في المنصة</h2>
-          <p className="text-muted-foreground mb-6">
-            يبسط مساعد التسجيل لدينا عملية تسجيل الشركات الناشئة المعقدة، ويرشدك خلال كل خطوة بوضوح ودقة.
+            المنصة الأولى في الجزائر لتسهيل وتسريع عملية تسجيل الشركات الناشئة وفقًا للقوانين الجزائرية
           </p>
           
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="w-full py-3 px-4 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors button-hover"
-          >
-            الذهاب إلى لوحة التحكم
-          </button>
+          {user ? (
+            <Button size="lg" asChild>
+              <Link to="/dashboard">الذهاب إلى لوحة التحكم</Link>
+            </Button>
+          ) : (
+            <Button size="lg" asChild>
+              <Link to="/auth/signup">ابدأ تسجيل شركتك الآن</Link>
+            </Button>
+          )}
         </div>
         
-        <div className="flex flex-col md:flex-row gap-6 justify-center mt-6">
-          <div className="bg-white rounded-xl shadow-subtle p-5 flex items-center max-w-xs">
-            <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <h3 className="font-medium">عملية بسيطة</h3>
-              <p className="text-sm text-muted-foreground">تسجيل مرشد خطوة بخطوة</p>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          <div className="bg-white p-6 rounded-lg shadow-card">
+            <h3 className="text-xl font-semibold mb-3">سهل الاستخدام</h3>
+            <p className="text-muted-foreground">
+              واجهة سهلة الاستخدام تساعدك على تتبع خطوات التسجيل والوثائق المطلوبة بكل وضوح
+            </p>
           </div>
           
-          <div className="bg-white rounded-xl shadow-subtle p-5 flex items-center max-w-xs">
-            <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <h3 className="font-medium">مساعد ذكي</h3>
-              <p className="text-sm text-muted-foreground">احصل على المساعدة في كل خطوة</p>
-            </div>
+          <div className="bg-white p-6 rounded-lg shadow-card">
+            <h3 className="text-xl font-semibold mb-3">توفير الوقت</h3>
+            <p className="text-muted-foreground">
+              وفر وقتك وجهدك من خلال معرفة كل الإجراءات والمتطلبات القانونية في مكان واحد
+            </p>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-card">
+            <h3 className="text-xl font-semibold mb-3">دعم متواصل</h3>
+            <p className="text-muted-foreground">
+              استفد من الدعم المستمر والإجابات عن أسئلتك الشائعة حول عملية التسجيل
+            </p>
           </div>
         </div>
-      </div>
+      </main>
+      
+      <footer className="bg-white mt-16 py-8 border-t">
+        <div className="container mx-auto px-4 text-center text-muted-foreground">
+          <p>© 2023 تكنوريجستر - جميع الحقوق محفوظة</p>
+        </div>
+      </footer>
     </div>
   );
 };
