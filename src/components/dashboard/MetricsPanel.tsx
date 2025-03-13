@@ -56,18 +56,18 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
     )}>
       <h2 className="text-lg font-semibold mb-4">تقدم التسجيل</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="space-y-3">
         {metrics.map((metric, index) => (
           <div 
             key={index}
-            className="bg-secondary/50 rounded-lg p-4 flex items-center"
+            className="bg-secondary/50 rounded-lg p-3 flex items-center"
           >
             <div className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center mr-3",
+              "w-9 h-9 rounded-full flex items-center justify-center mr-3",
               "bg-white shadow-subtle",
               metric.color
             )}>
-              <metric.icon size={20} />
+              <metric.icon size={18} />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">{metric.label}</p>

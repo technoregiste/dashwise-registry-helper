@@ -460,6 +460,14 @@ const Dashboard = () => {
   const estimatedCost = calculateTotalCost();
   const estimatedTime = calculateTotalTime();
 
+  // Startup information
+  const startupInfo = {
+    name: "تك فيستا لابز",
+    founderName: "أحمد محمود",
+    phone: "0550123456",
+    email: "info@techvista.dz"
+  };
+
   // Show welcome toast on initial render
   useEffect(() => {
     setTimeout(() => {
@@ -473,18 +481,44 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col min-h-screen bg-secondary/30">
       <Header 
-        startupName="تك فيستا لابز"
+        startupName={startupInfo.name}
         progressPercentage={progressPercentage}
       />
       
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="space-y-8">
-          <MetricsPanel
-            completionPercentage={progressPercentage}
-            estimatedTime={estimatedTime}
-            daysRemaining={14}
-            estimatedCost={estimatedCost}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* بطاقة المعلومات الشخصية */}
+            <div className="bg-white rounded-xl shadow-card p-6 animate-fade-in">
+              <h2 className="text-lg font-semibold mb-4">المعلومات الشخصية</h2>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">اسم الشركة:</span>
+                  <span className="font-medium">{startupInfo.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">اسم المؤسس:</span>
+                  <span className="font-medium">{startupInfo.founderName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">رقم الهاتف:</span>
+                  <span className="font-medium ltr">{startupInfo.phone}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">البريد الإلكتروني:</span>
+                  <span className="font-medium ltr">{startupInfo.email}</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* بطاقة تقدم التسجيل */}
+            <MetricsPanel
+              completionPercentage={progressPercentage}
+              estimatedTime={estimatedTime}
+              daysRemaining={14}
+              estimatedCost={estimatedCost}
+            />
+          </div>
           
           <RegistrationSteps 
             steps={steps}
@@ -492,28 +526,6 @@ const Dashboard = () => {
             onDocumentToggle={handleDocumentToggle}
             onChecklistToggle={handleChecklistToggle}
           />
-
-          <div className="bg-white rounded-xl shadow-card p-6 animate-fade-in">
-            <h2 className="text-xl font-semibold mb-4">نصائح وإرشادات</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-secondary/50 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-primary mb-2">اختيار الاسم</h3>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>تأكد من فرادة الاسم لتجنب الرفض</li>
-                  <li>تحقق من تعارضات العلامات التجارية مسبقاً</li>
-                  <li>اختر اسماً يعكس هوية علامتك التجارية</li>
-                </ul>
-              </div>
-              <div className="bg-secondary/50 p-4 rounded-lg">
-                <h3 className="text-lg font-medium text-primary mb-2">الهيكل القانوني</h3>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>يوصى بشركة ذات مسؤولية محدودة (SARL) لمعظم الشركات الناشئة</li>
-                  <li>تختلف متطلبات الحد الأدنى لرأس المال حسب الهيكل</li>
-                  <li>ضع في اعتبارك الآثار الضريبية لكل هيكل</li>
-                </ul>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
       
