@@ -1,45 +1,70 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { Link, useNavigate } from 'react-router-dom';
 import ProgressBar from '@/components/dashboard/ProgressBar';
+import { Menu, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 interface HeaderProps {
   startupName: string;
   progressPercentage: number;
-  className?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-  startupName, 
-  progressPercentage,
-  className
-}) => {
+const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage }) => {
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "تم تسجيل خروجك بنجاح من النظام",
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "خطأ في تسجيل الخروج",
+        description: "حدث خطأ أثناء تسجيل الخروج، يرجى المحاولة مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <header className={cn(
-      "w-full py-4 px-6 flex flex-col bg-white shadow-subtle z-10 animate-slide-down",
-      className
-    )}>
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
-            <span className="text-white font-semibold text-lg">ت</span>
+    <header className="bg-white shadow-sm">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="flex items-center">
+              <div className="bg-primary w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold ml-2">
+                ر
+              </div>
+              <span className="text-xl font-semibold">{startupName}</span>
+            </Link>
           </div>
-          <h1 className="text-xl font-semibold">
-            تكنوريجستر
-          </h1>
+          
+          <div className="flex items-center space-x-4">
+            {user && (
+              <button 
+                onClick={handleSignOut}
+                className="flex items-center text-muted-foreground hover:text-primary transition-colors"
+              >
+                <LogOut size={18} className="ml-1" />
+                <span>تسجيل الخروج</span>
+              </button>
+            )}
+            <button className="lg:hidden">
+              <Menu size={20} />
+            </button>
+          </div>
         </div>
         
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">الشركة الناشئة</p>
-          <p className="font-medium">{startupName}</p>
+        <div className="mb-4">
+          <ProgressBar percentage={progressPercentage} />
         </div>
-      </div>
-      
-      <div className="mt-4">
-        <ProgressBar percentage={progressPercentage} />
       </div>
     </header>
   );

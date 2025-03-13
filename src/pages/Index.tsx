@@ -1,9 +1,11 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-secondary/30 p-6">
@@ -25,10 +27,10 @@ const Index = () => {
           </p>
           
           <button 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(user ? '/dashboard' : '/auth')}
             className="w-full py-3 px-4 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors button-hover"
           >
-            الذهاب إلى لوحة التحكم
+            {user ? 'الذهاب إلى لوحة التحكم' : 'تسجيل الدخول / إنشاء حساب'}
           </button>
         </div>
         

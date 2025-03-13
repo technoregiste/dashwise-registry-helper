@@ -1,18 +1,43 @@
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import RegistrationSteps, { StepData, Document, ChecklistItem } from '@/components/dashboard/RegistrationSteps';
 import MetricsPanel from '@/components/dashboard/MetricsPanel';
 import AiAssistant from '@/components/ai/AiAssistant';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+
+interface ProfileData {
+  id: string;
+  founder_name: string;
+  company_name: string;
+  company_number: string;
+  phone: string;
+}
+
+interface DbRegistrationStep {
+  id: string;
+  profile_id: string;
+  step_id: number;
+  status: 'pending' | 'incomplete' | 'progress' | 'complete';
+  documents: Document[] | null;
+  checklist_items: ChecklistItem[] | null;
+  completed_at: string | null;
+}
 
 const Dashboard = () => {
-  // Enhanced data for the Algerian Startup Registration process
-  const [steps, setSteps] = useState<StepData[]>([
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [steps, setSteps] = useState<StepData[]>([]);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const defaultSteps: StepData[] = [
     {
       id: 1,
       title: 'اختيار اسم الشركة',
-      status: 'complete',
+      status: 'incomplete',
       description: 'يعد اختيار اسم فريد ومميز لشركتك أول خطوة نحو تسجيلها رسميًا. يجب أن يكون الاسم متاحًا وغير مستخدم من قبل، لذا ستحتاج إلى اقتراح أربعة أسماء مختلفة والتحقق من توفرها قبل الحجز رسميًا. اختيار اسم مناسب يساعد في بناء هوية قوية لشركتك الناشئة.',
       details: {
         steps: [
@@ -24,8 +49,8 @@ const Dashboard = () => {
         cost: 'رسوم حجز الاسم: 490 دج',
         timeframe: '24 ساعة',
         documents: [
-          { id: '1-1', name: 'لا توجد وثائق مطلوبة لتقديم الطلب', checked: true },
-          { id: '1-2', name: '(بعد الحجز) شهادة حجز الاسم', checked: true }
+          { id: '1-1', name: 'لا توجد وثائق مطلوبة لتقديم الطلب', checked: false },
+          { id: '1-2', name: '(بعد الحجز) شهادة حجز الاسم', checked: false }
         ],
         notes: [
           'إذا تم رفض الأسماء المقترحة، يمكن تقديم مجموعة جديدة من الأسماء وإعادة المحاولة',
@@ -33,10 +58,10 @@ const Dashboard = () => {
           'بعد الحصول على شهادة حجز الاسم، يجب المحافظة عليها جيدا وانشاء نسخ لأنها مطلوبة في الخطوات القادمة'
         ],
         checklistItems: [
-          { id: '1-cl-1', text: 'تم تقديم 4 أسماء مقترحة', checked: true },
-          { id: '1-cl-2', text: 'تم التحقق من توفر الاسم في مركز CNRC', checked: true },
-          { id: '1-cl-3', text: 'تم حجز الاسم رسميًا', checked: true },
-          { id: '1-cl-4', text: 'تم استلام شهادة حجز الاسم', checked: true }
+          { id: '1-cl-1', text: 'تم تقديم 4 أسماء مقترحة', checked: false },
+          { id: '1-cl-2', text: 'تم التحقق من توفر الاسم في مركز CNRC', checked: false },
+          { id: '1-cl-3', text: 'تم حجز الاسم رسميًا', checked: false },
+          { id: '1-cl-4', text: 'تم استلام شهادة حجز الاسم', checked: false }
         ]
       }
     },
@@ -52,7 +77,7 @@ const Dashboard = () => {
           'تحديد الهيكل القانوني النهائي والاحتفاظ به لاستخدامه في إعداد الوثائق الرسمية'
         ],
         options: [
-          'Entreprise Individuelle (EI) – مؤسسة فردية، يتحمل صاحبها المسؤولية الكاملة عن الديون والالتزامات',
+          'Entreprise Individuelle (EI) – م��سسة فردية، يتحمل صاحبها المسؤولية الكاملة عن الديون والالتزامات',
           'SARL/EURL (شركة ذات مسؤولية محدودة) – الأنسب للشركات الناشئة، حيث تكون مسؤولية الشركاء محدودة برأس المال المستثمر',
           'SPA (شركة مساهمة) – مناسبة للشركات الكبرى التي تحتاج إلى رأس مال كبير ولديها عدة مساهمين',
           'SNC (شركة تضامنية) – شراكة بين شخصين أو أكثر، يتحمل الشركاء المسؤولية الكاملة عن الديون'
@@ -93,11 +118,11 @@ const Dashboard = () => {
         documents: [
           { id: '3-1', name: 'بطاقة التعريف الوطنية للمؤسسين والمسير', checked: true },
           { id: '3-2', name: 'شهادة حجز الاسم (من البطاقة 1)', checked: true },
-          { id: '3-3', name: 'عقد الإيجار أو سند الملكية او الاستفادة للمقر الرسمي', checked: false },
+          { id: '3-3', name: 'عقد الإيجار أو سند الملكية او شهادة الاستفادة للمقر الرسمي', checked: false },
           { id: '3-4', name: 'عقد التأسيس والنظام الأساسي من الموثق', checked: false }
         ],
         notes: [
-          'عقد الإيجار يجب أن يكون باسم الشركة وليس باسم شخص طبيعي لضمان القبول القانوني',
+          'عقد الإيجار يجب أن يكون باسم الشركة وليس باسم شخص طبيعي لضم��ن القبول القانوني',
           'يمكن للمؤسسين المسجلين في حاضنة الأعمال استخدام مقرها كمقر رسمي للشركة (حسب الاتفاق)',
           'عقد التأسيس والنظام الأساسي يحددان قواعد تشغيل الشركة، لذا يجب مراجعتهما جيدًا قبل التوقيع'
         ],
@@ -146,7 +171,7 @@ const Dashboard = () => {
       id: 5,
       title: 'التسجيل في الضمان الاجتماعي',
       status: 'incomplete',
-      description: 'يُعد تسجيل الشركة والمسير في صندوق الضمان الاجتماعي (CNAS أو CASNOS) خطوة ضرورية لضمان الحقوق الاجتماعية والتأمينية. يجب على المسير والعاملين (إن وُجدوا) الاشتراك في أحد الصندوقين، وفقًا لوضعهم القانوني، لضمان التغطية الصحية والحقوق التقاعدية.',
+      description: 'يُعد تسجيل الشركة والمسير في صندوق الضمان الاجتماعي (CNAS أو CASNOS) خطوة ضرورية لضمان الحقوق الاجتماعية و��لتأمينية. يجب على المسير والعاملين (إن وُجدوا) الاشتراك في أحد الصندوقين، وفقًا لوضعهم القانوني، لضمان التغطية الصحية والحقوق التقاعدية.',
       details: {
         steps: [
           'تحديد ما إذا كان المسير أجيرًا أو غير أجير لاختيار الصندوق المناسب',
@@ -190,7 +215,7 @@ const Dashboard = () => {
         cost: 'هذه الخدمة مجانية ولا تتطلب أي رسوم إضافية',
         timeframe: '2-3 أيام',
         documents: [
-          { id: '6-1', name: 'بطاقة التعريف الوطنية للمسير', checked: false },
+          { id: '6-1', name: 'بطاقة التعريف الوطنية ��لمسير', checked: false },
           { id: '6-2', name: 'نسخة من السجل التجاري (من البطاقة 4)', checked: false },
           { id: '6-3', name: 'عقد الإيجار أو سند الملكية للمقر الرسمي', checked: false }
         ],
@@ -238,14 +263,40 @@ const Dashboard = () => {
         ]
       }
     }
-  ]);
+  ];
 
-  // Function to handle document checkbox toggle
+  const updateStepInDatabase = async (stepId: number, updatedStep: any) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('registration_steps')
+        .update({
+          status: updatedStep.status,
+          documents: updatedStep.details?.documents || null,
+          checklist_items: updatedStep.details?.checklistItems || null,
+          completed_at: updatedStep.status === 'complete' ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('profile_id', user.id)
+        .eq('step_id', stepId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating step in database:', error);
+      toast({
+        title: "خطأ في حفظ البيانات",
+        description: "حدث خطأ أثناء حفظ تقدمك، يرجى المحاولة مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDocumentToggle = (stepId: number, docId: string, checked: boolean) => {
-    setSteps(prevSteps => 
-      prevSteps.map(step => {
+    setSteps(prevSteps => {
+      const updatedSteps = prevSteps.map(step => {
         if (step.id === stepId && step.details?.documents) {
-          return {
+          const updatedStep = {
             ...step,
             details: {
               ...step.details,
@@ -257,29 +308,32 @@ const Dashboard = () => {
               })
             }
           };
+          
+          const updatedStepWithStatus = updateStepStatus(updatedStep);
+          
+          updateStepInDatabase(stepId, updatedStepWithStatus);
+          
+          return updatedStepWithStatus;
         }
         return step;
-      })
-    );
+      });
+      
+      return updatedSteps;
+    });
 
-    // Display toast notification
     if (checked) {
       toast({
         title: "تم تحديث الوثائق",
         description: "تم تأكيد استلام وثيقة جديدة بنجاح",
       });
     }
-
-    // Update step status based on documents and checklist
-    updateStepStatus(stepId);
   };
 
-  // Function to handle checklist item toggle
   const handleChecklistToggle = (stepId: number, itemId: string, checked: boolean) => {
-    setSteps(prevSteps => 
-      prevSteps.map(step => {
+    setSteps(prevSteps => {
+      const updatedSteps = prevSteps.map(step => {
         if (step.id === stepId && step.details?.checklistItems) {
-          return {
+          const updatedStep = {
             ...step,
             details: {
               ...step.details,
@@ -291,63 +345,56 @@ const Dashboard = () => {
               })
             }
           };
+          
+          const updatedStepWithStatus = updateStepStatus(updatedStep);
+          
+          updateStepInDatabase(stepId, updatedStepWithStatus);
+          
+          return updatedStepWithStatus;
         }
         return step;
-      })
-    );
+      });
+      
+      return updatedSteps;
+    });
 
-    // Display toast notification
     if (checked) {
       toast({
         title: "تم تحديث التقدم",
         description: "تم تأكيد إكمال خطوة جديدة بنجاح",
       });
     }
-
-    // Update step status based on documents and checklist
-    updateStepStatus(stepId);
   };
 
-  // Function to update step status based on checklist and document completion
-  const updateStepStatus = (stepId: number) => {
-    setSteps(prevSteps => 
-      prevSteps.map(step => {
-        if (step.id === stepId) {
-          const checklistComplete = step.details?.checklistItems?.every(item => item.checked) ?? false;
-          const documentsComplete = step.details?.documents?.every(doc => doc.checked) ?? false;
-          
-          // Only mark as complete if both checklist and documents are complete
-          if (checklistComplete && documentsComplete) {
-            return { ...step, status: 'complete' };
-          } else if (step.details?.checklistItems?.some(item => item.checked) || 
-                    step.details?.documents?.some(doc => doc.checked)) {
-            return { ...step, status: 'progress' };
-          } else {
-            return { ...step, status: 'incomplete' };
-          }
-        }
-        return step;
-      })
-    );
+  const updateStepStatus = (step: StepData): StepData => {
+    const checklistComplete = step.details?.checklistItems?.every(item => item.checked) ?? false;
+    const documentsComplete = step.details?.documents?.every(doc => doc.checked) ?? false;
+    
+    if (checklistComplete && documentsComplete) {
+      return { ...step, status: 'complete' };
+    } else if (step.details?.checklistItems?.some(item => item.checked) || 
+              step.details?.documents?.some(doc => doc.checked)) {
+      return { ...step, status: 'progress' };
+    } else {
+      return { ...step, status: 'incomplete' };
+    }
   };
 
-  // Calculate progress percentage
   const calculateProgress = () => {
+    if (steps.length === 0) return 0;
+    
     const total = steps.length;
     const completed = steps.filter(step => step.status === 'complete').length;
     const inProgress = steps.filter(step => step.status === 'progress').length * 0.5;
     
-    // Calculate document and checklist completion for in-progress steps
     let progressPoints = 0;
     steps.filter(step => step.status === 'progress').forEach(step => {
-      // Document progress
       if (step.details?.documents && step.details.documents.length > 0) {
         const totalDocs = step.details.documents.length;
         const checkedDocs = step.details.documents.filter(doc => doc.checked).length;
         progressPoints += (checkedDocs / totalDocs) * 0.25 / total;
       }
       
-      // Checklist progress
       if (step.details?.checklistItems && step.details.checklistItems.length > 0) {
         const totalItems = step.details.checklistItems.length;
         const checkedItems = step.details.checklistItems.filter(item => item.checked).length;
@@ -360,7 +407,6 @@ const Dashboard = () => {
 
   const progressPercentage = calculateProgress();
 
-  // Handle step click
   const handleStepClick = (stepId: number) => {
     const step = steps.find(s => s.id === stepId);
     if (step) {
@@ -378,7 +424,6 @@ const Dashboard = () => {
     }
   };
 
-  // Calculate total estimated cost
   const calculateTotalCost = () => {
     let totalMin = 0;
     let totalMax = 0;
@@ -387,18 +432,15 @@ const Dashboard = () => {
       if (step.details?.cost) {
         const costText = step.details.cost;
         
-        // Extract numbers from cost string
         const matches = costText.match(/\d{1,3}(,\d{3})*(\.\d+)?/g);
         
         if (matches) {
-          // Handle range (e.g., "5,000 - 20,000 دج")
           if (matches.length >= 2) {
             const min = parseFloat(matches[0].replace(/,/g, ''));
             const max = parseFloat(matches[1].replace(/,/g, ''));
             totalMin += min;
             totalMax += max;
           } 
-          // Handle single value (e.g., "490 دج")
           else if (matches.length === 1) {
             const value = parseFloat(matches[0].replace(/,/g, ''));
             totalMin += value;
@@ -415,7 +457,6 @@ const Dashboard = () => {
     }
   };
 
-  // Calculate total estimated time
   const calculateTotalTime = () => {
     let minDays = 0;
     let maxDays = 0;
@@ -424,13 +465,11 @@ const Dashboard = () => {
       if (step.details?.timeframe) {
         const timeText = step.details.timeframe;
         
-        // Check for hours
         if (timeText.includes('ساعة')) {
           const hours = parseInt(timeText.match(/\d+/)?.[0] || '0');
           minDays += hours / 24;
           maxDays += hours / 24;
         }
-        // Check for days range (e.g., "2-5 أيام")
         else if (timeText.match(/(\d+)-(\d+)\s+أيام?/)) {
           const matches = timeText.match(/(\d+)-(\d+)\s+أيام?/);
           if (matches && matches.length >= 3) {
@@ -438,7 +477,6 @@ const Dashboard = () => {
             maxDays += parseInt(matches[2]);
           }
         }
-        // Check for single day value (e.g., "2 أيام")
         else if (timeText.match(/(\d+)\s+أيام?/)) {
           const days = parseInt(timeText.match(/(\d+)/)?.[0] || '0');
           minDays += days;
@@ -460,58 +498,117 @@ const Dashboard = () => {
   const estimatedCost = calculateTotalCost();
   const estimatedTime = calculateTotalTime();
 
-  // Startup information
-  const startupInfo = {
-    name: "تك فيستا لابز",
-    founderName: "أحمد محمود",
-    phone: "0550123456",
-    email: "info@techvista.dz"
-  };
-
-  // Show welcome toast on initial render
   useEffect(() => {
-    setTimeout(() => {
-      toast({
-        title: "مرحباً بك في لوحة تسجيل الشركة الناشئة",
-        description: "اتبع الخطوات المذكورة لإكمال تسجيل شركتك بنجاح",
-      });
-    }, 1000);
-  }, []);
+    const fetchUserData = async () => {
+      if (!user) return;
+
+      try {
+        setLoading(true);
+        
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) throw profileError;
+        
+        setProfile(profileData);
+
+        const { data: stepsData, error: stepsError } = await supabase
+          .from('registration_steps')
+          .select('*')
+          .eq('profile_id', user.id)
+          .order('step_id', { ascending: true });
+
+        if (stepsError) throw stepsError;
+
+        if (stepsData && stepsData.length > 0) {
+          const formattedSteps = stepsData.map((dbStep: DbRegistrationStep) => {
+            const defaultStep = defaultSteps.find(s => s.id === dbStep.step_id) || defaultSteps[0];
+            
+            return {
+              ...defaultStep,
+              id: dbStep.step_id,
+              status: dbStep.status as StatusType,
+              details: {
+                ...defaultStep.details,
+                documents: dbStep.documents || defaultStep.details?.documents,
+                checklistItems: dbStep.checklist_items || defaultStep.details?.checklistItems
+              }
+            };
+          });
+          
+          setSteps(formattedSteps);
+        } else {
+          setSteps(defaultSteps);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        toast({
+          title: "خطأ في تحميل البيانات",
+          description: "حدث خطأ أثناء تحميل بياناتك، يرجى المحاولة مرة أخرى لاحقًا",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
+  useEffect(() => {
+    if (!loading && profile) {
+      setTimeout(() => {
+        toast({
+          title: `م��حباً ${profile.founder_name}`,
+          description: "اتبع الخطوات المذكورة لإكمال تسجيل شركتك بنجاح",
+        });
+      }, 1000);
+    }
+  }, [loading, profile]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-secondary/30">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary/30">
       <Header 
-        startupName={startupInfo.name}
+        startupName={profile?.company_name || "شركتك الناشئة"}
         progressPercentage={progressPercentage}
       />
       
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* بطاقة المعلومات الشخصية */}
             <div className="bg-white rounded-xl shadow-card p-6 animate-fade-in">
               <h2 className="text-lg font-semibold mb-4">المعلومات الشخصية</h2>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">اسم الشركة:</span>
-                  <span className="font-medium">{startupInfo.name}</span>
+                  <span className="font-medium">{profile?.company_name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">اسم المؤسس:</span>
-                  <span className="font-medium">{startupInfo.founderName}</span>
+                  <span className="font-medium">{profile?.founder_name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">رقم الهاتف:</span>
-                  <span className="font-medium ltr">{startupInfo.phone}</span>
+                  <span className="font-medium ltr">{profile?.phone}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">البريد الإلكتروني:</span>
-                  <span className="font-medium ltr">{startupInfo.email}</span>
+                  <span className="text-muted-foreground">رقم السجل التجاري:</span>
+                  <span className="font-medium ltr">{profile?.company_number}</span>
                 </div>
               </div>
             </div>
             
-            {/* بطاقة تقدم التسجيل */}
             <MetricsPanel
               completionPercentage={progressPercentage}
               estimatedTime={estimatedTime}
