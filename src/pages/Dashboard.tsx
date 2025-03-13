@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -371,7 +372,7 @@ const Dashboard = () => {
   // Function to update step status based on checklist and document completion
   const updateStepStatus = async (stepId: number) => {
     const step = steps.find(s => s.id === stepId);
-    if (!step) return;
+    if (!step || !user) return;
 
     const checklistComplete = step.details?.checklistItems?.every(item => item.checked) ?? false;
     const documentsComplete = step.details?.documents?.every(doc => doc.checked) ?? false;
@@ -408,8 +409,8 @@ const Dashboard = () => {
             profile_id: user.id,
             step_id: stepId,
             status: newStatus,
-            documents: stepToUpdate.details?.documents || null,
-            checklist_items: stepToUpdate.details?.checklistItems || null,
+            documents: stepToUpdate.details?.documents as Json || null,
+            checklist_items: stepToUpdate.details?.checklistItems as Json || null,
             updated_at: new Date().toISOString(),
             completed_at: newStatus === 'complete' ? new Date().toISOString() : null
           })

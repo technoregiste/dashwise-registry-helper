@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -45,13 +46,13 @@ const AdminPanel = () => {
       if (stepsError) throw stepsError;
       
       // Process the data to match our StartupData interface
-      const processedData: StartupData[] = profiles.map((profile, index) => {
+      const processedData: StartupData[] = profiles ? profiles.map((profile, index) => {
         // Find user email
-        const user = users.users.find(u => u.id === profile.id);
+        const user = users && users.users ? users.users.find(u => u.id === profile.id) : undefined;
         const email = user ? user.email : '';
         
         // Calculate progress
-        const userSteps = steps.filter(step => step.profile_id === profile.id);
+        const userSteps = steps ? steps.filter(step => step.profile_id === profile.id) : [];
         const totalSteps = userSteps.length || 1;
         const completedSteps = userSteps.filter(step => step.status === 'complete').length;
         const inProgressSteps = userSteps.filter(step => step.status === 'progress').length;
@@ -77,7 +78,7 @@ const AdminPanel = () => {
           progress: progressPercentage,
           status: status
         };
-      });
+      }) : [];
       
       setStartups(processedData);
     } catch (error) {
