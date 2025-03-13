@@ -1,16 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
+// Define the structure of startup data
 interface StartupData {
-  id: number;
+  id: string;
   name: string;
-  founderName: string;
-  phone: string;
+  founder: string;
   email: string;
+  phone: string;
   progress: number;
   status: 'pending' | 'in-progress' | 'completed';
 }
@@ -32,44 +32,55 @@ interface Step {
   [key: string]: any;
 }
 
+// Define a User type for the auth.users data
+interface User {
+  id: string;
+  email: string;
+  [key: string]: any;
+}
+
 const AdminPanel = () => {
   const [startups, setStartups] = useState<StartupData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStartups();
   }, []);
 
   const fetchStartups = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      
-      // Fetch profiles and registration steps data
+      // Fetch user profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, founder_name, company_name, phone');
+        .select('*');
       
       if (profilesError) throw profilesError;
       
-      // Fetch users to get email addresses
+      // Fetch user emails from auth.users (requires admin access)
       const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+      
       if (usersError) throw usersError;
       
-      // Get registration steps for progress calculation
+      // Fetch registration steps
       const { data: steps, error: stepsError } = await supabase
         .from('registration_steps')
-        .select('profile_id, step_id, status');
+        .select('*');
       
       if (stepsError) throw stepsError;
       
       // Safely cast data to known types
       const typedProfiles = profiles as Profile[] | null;
       const typedSteps = steps as Step[] | null;
+      const typedUsers = users?.users as User[] | undefined;
       
       // Process the data to match our StartupData interface
-      const processedData: StartupData[] = typedProfiles ? typedProfiles.map((profile, index) => {
-        // Find user email
-        const user = users && users.users ? users.users.find(u => u.id === profile.id) : undefined;
+      const processedData: StartupData[] = typedProfiles ? typedProfiles.map((profile) => {
+        // Find user email from the typed users array
+        const user = typedUsers ? typedUsers.find(u => u.id === profile.id) : undefined;
         const email = user ? user.email : '';
         
         // Calculate progress
@@ -78,168 +89,162 @@ const AdminPanel = () => {
         const completedSteps = userSteps.filter(step => step.status === 'complete').length;
         const inProgressSteps = userSteps.filter(step => step.status === 'progress').length;
         
-        const progressPercentage = Math.round(
-          ((completedSteps + (inProgressSteps * 0.5)) / totalSteps) * 100
-        );
+        // Calculate progress as a percentage
+        const progress = Math.round(((completedSteps + (inProgressSteps * 0.5)) / totalSteps) * 100);
         
         // Determine status
         let status: 'pending' | 'in-progress' | 'completed' = 'pending';
-        if (progressPercentage === 100) {
+        if (completedSteps === totalSteps) {
           status = 'completed';
-        } else if (progressPercentage > 0) {
+        } else if (inProgressSteps > 0 || completedSteps > 0) {
           status = 'in-progress';
         }
         
         return {
-          id: index + 1,
+          id: profile.id,
           name: profile.company_name,
-          founderName: profile.founder_name,
+          founder: profile.founder_name,
+          email,
           phone: profile.phone,
-          email: email,
-          progress: progressPercentage,
-          status: status
+          progress,
+          status
         };
       }) : [];
       
       setStartups(processedData);
-    } catch (error) {
-      console.error('Error fetching startups:', error);
-      toast({
-        title: "خطأ في تحميل البيانات",
-        description: "حدث خطأ أثناء محاولة تحميل بيانات الشركات الناشئة",
-        variant: "destructive",
-      });
-      // If there's an error, show the mock data as fallback
-      setStartups([
-        {
-          id: 1,
-          name: "تك فيستا لابز",
-          founderName: "أحمد محمود",
-          phone: "0550123456",
-          email: "info@techvista.dz",
-          progress: 42,
-          status: 'in-progress'
-        },
-        {
-          id: 2,
-          name: "سمارت سوليوشنز",
-          founderName: "سارة رحمان",
-          phone: "0660789123",
-          email: "contact@smartsolutions.dz",
-          progress: 85,
-          status: 'in-progress'
-        },
-        {
-          id: 3,
-          name: "ديجيتال اينوفيت",
-          founderName: "محمد خالد",
-          phone: "0770456789",
-          email: "info@digitalinnovate.dz",
-          progress: 100,
-          status: 'completed'
-        },
-        {
-          id: 4,
-          name: "تيك مايند",
-          founderName: "يوسف ابراهيم",
-          phone: "0540123789",
-          email: "contact@techmind.dz",
-          progress: 14,
-          status: 'pending'
-        },
-        {
-          id: 5,
-          name: "أجيل ديف",
-          founderName: "ليلى عمران",
-          phone: "0660452178",
-          email: "info@agiledev.dz",
-          progress: 71,
-          status: 'in-progress'
-        }
-      ]);
+    } catch (err) {
+      console.error('Error fetching startups:', err);
+      setError('Failed to load startup data. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Function to get badge color based on status
-  const getStatusBadge = (status: string, progress: number) => {
-    if (status === 'completed') return <Badge className="bg-status-complete">مكتمل</Badge>;
-    if (status === 'pending' || progress < 20) return <Badge className="bg-status-incomplete">لم يبدأ</Badge>;
-    return <Badge className="bg-status-progress">قيد التنفيذ</Badge>;
+  const renderStatus = (status: 'pending' | 'in-progress' | 'completed') => {
+    switch (status) {
+      case 'pending':
+        return <span className="text-gray-500">معلق</span>;
+      case 'in-progress':
+        return <span className="text-blue-500">قيد التقدم</span>;
+      case 'completed':
+        return <span className="text-green-500">مكتمل</span>;
+      default:
+        return <span className="text-gray-500">غير معروف</span>;
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("هل أنت متأكد أنك تريد حذف هذا الحساب؟");
+    if (!confirmDelete) return;
+
+    try {
+      setLoading(true);
+      // Delete the user from auth.users (requires admin access)
+      const { error: userError } = await supabase.auth.admin.deleteUser(id);
+
+      if (userError) {
+        throw userError;
+      }
+
+      // Optionally, delete the profile from the profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', id);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // Update the state to reflect the deletion
+      setStartups(startups.filter(startup => startup.id !== id));
+      toast({
+        title: "تم حذف الحساب",
+        description: "تم حذف الحساب بنجاح.",
+      });
+    } catch (err) {
+      console.error("Error deleting startup:", err);
+      toast({
+        variant: "destructive",
+        title: "فشل في حذف الحساب",
+        description: "حدث خطأ أثناء محاولة حذف الحساب.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-secondary/30">
-      <div className="bg-white shadow-subtle p-4 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
-            <span className="text-white font-semibold text-lg">ت</span>
-          </div>
-          <h1 className="text-xl font-semibold">
-            لوحة إدارة تكنوريجستر
-          </h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-semibold mb-4">لوحة تحكم المسؤول</h1>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">خطأ!</strong>
+          <span className="block sm:inline">{error}</span>
         </div>
-        <div>
-          <span className="text-muted-foreground">مدير النظام</span>
+      )}
+      {loading ? (
+        <div className="text-center">جاري التحميل...</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full leading-normal">
+            <thead>
+              <tr>
+                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  اسم الشركة
+                </th>
+                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  اسم المؤسس
+                </th>
+                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  البريد الإلكتروني
+                </th>
+                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  رقم الهاتف
+                </th>
+                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  التقدم
+                </th>
+                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  الحالة
+                </th>
+                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  إجراءات
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {startups.map(startup => (
+                <tr key={startup.id}>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    {startup.name}
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    {startup.founder}
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    {startup.email}
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    {startup.phone}
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    {startup.progress}%
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    {renderStatus(startup.status)}
+                  </td>
+                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <Button variant="destructive" onClick={() => handleDelete(startup.id)}>
+                      حذف
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </div>
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-card p-6 animate-fade-in">
-          <h2 className="text-2xl font-semibold mb-6">الشركات الناشئة المسجلة</h2>
-          
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-              <span className="sr-only">جاري التحميل...</span>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">الرقم</TableHead>
-                    <TableHead className="text-right">اسم الشركة</TableHead>
-                    <TableHead className="text-right">اسم المؤسس</TableHead>
-                    <TableHead className="text-right">رقم الهاتف</TableHead>
-                    <TableHead className="text-right">البريد الإلكتروني</TableHead>
-                    <TableHead className="text-right">نسبة التقدم</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {startups.map((startup) => (
-                    <TableRow key={startup.id}>
-                      <TableCell className="font-medium">{startup.id}</TableCell>
-                      <TableCell>{startup.name}</TableCell>
-                      <TableCell>{startup.founderName}</TableCell>
-                      <TableCell className="ltr">{startup.phone}</TableCell>
-                      <TableCell className="ltr">{startup.email}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-full bg-secondary rounded-full h-2.5">
-                            <div 
-                              className={`h-2.5 rounded-full ${
-                                startup.progress >= 80 ? "bg-status-complete" : 
-                                startup.progress >= 40 ? "bg-status-progress" : 
-                                "bg-status-incomplete"
-                              }`}
-                              style={{ width: `${startup.progress}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm">{startup.progress}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(startup.status, startup.progress)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </div>
-      </main>
+      )}
     </div>
   );
 };
