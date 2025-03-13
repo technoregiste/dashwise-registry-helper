@@ -1,26 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import RegistrationSteps, { StepData, Document, ChecklistItem } from '@/components/dashboard/RegistrationSteps';
 import MetricsPanel from '@/components/dashboard/MetricsPanel';
 import AiAssistant from '@/components/ai/AiAssistant';
-import ConfirmationDialog from '@/components/dashboard/ConfirmationDialog';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  
-  // State for confirmation dialog
-  const [confirmDialog, setConfirmDialog] = useState({
-    isOpen: false,
-    stepId: 0,
-    title: '',
-    description: ''
-  });
   
   // Enhanced data for the Algerian Startup Registration process
   const [steps, setSteps] = useState<StepData[]>([
@@ -108,7 +99,7 @@ const Dashboard = () => {
         documents: [
           { id: '3-1', name: 'بطاقة التعريف الوطنية للمؤسسين والمسير', checked: true },
           { id: '3-2', name: 'شهادة حجز الاسم (من البطاقة 1)', checked: true },
-          { id: '3-3', name: 'عقد الإيجار أو سند الملكية او شهادة الاستفادة للمقر الرسمي', checked: false },
+          { id: '3-3', name: 'عقد الإيجار أو سند الملكية او الاستفادة للمقر الرسمي', checked: false },
           { id: '3-4', name: 'عقد التأسيس والنظام الأساسي من الموثق', checked: false }
         ],
         notes: [
@@ -283,6 +274,11 @@ const Dashboard = () => {
               return {
                 ...step,
                 status: dbStep.status as 'complete' | 'progress' | 'incomplete',
+                details: {
+                  ...step.details,
+                  documents: dbStep.documents as Document[] || step.details?.documents,
+                  checklistItems: dbStep.checklist_items as ChecklistItem[] || step.details?.checklistItems,
+                }
               };
             }
             return step;
@@ -299,8 +295,8 @@ const Dashboard = () => {
     }
   };
 
-  // Function to handle document checkbox toggle (now just updates UI, no DB save)
-  const handleDocumentToggle = (stepId: number, docId: string, checked: boolean) => {
+  // Function to handle document checkbox toggle
+  const handleDocumentToggle = async (stepId: number, docId: string, checked: boolean) => {
     setSteps(prevSteps => 
       prevSteps.map(step => {
         if (step.id === stepId && step.details?.documents) {
@@ -330,10 +326,13 @@ const Dashboard = () => {
         description: "تم تأكيد استلام وثيقة جديدة بنجاح",
       });
     }
+
+    // Update step status based on documents and checklist
+    await updateStepStatus(stepId);
   };
 
-  // Function to handle checklist item toggle (now just updates UI, no DB save)
-  const handleChecklistToggle = (stepId: number, itemId: string, checked: boolean) => {
+  // Function to handle checklist item toggle
+  const handleChecklistToggle = async (stepId: number, itemId: string, checked: boolean) => {
     setSteps(prevSteps => 
       prevSteps.map(step => {
         if (step.id === stepId && step.details?.checklistItems) {
@@ -363,163 +362,65 @@ const Dashboard = () => {
         description: "تم تأكيد إكمال خطوة جديدة بنجاح",
       });
     }
+
+    // Update step status based on documents and checklist
+    await updateStepStatus(stepId);
   };
 
-  // New function to open the confirmation dialog
-  const openConfirmationDialog = (stepId: number) => {
+  // Function to update step status based on checklist and document completion
+  const updateStepStatus = async (stepId: number) => {
     const step = steps.find(s => s.id === stepId);
     if (!step) return;
 
-    setConfirmDialog({
-      isOpen: true,
-      stepId,
-      title: `تأكيد إكمال الخطوة ${stepId}: ${step.title}`,
-      description: 'هل أنت متأكد من أنك أتممت جميع المتطلبات لهذه الخطوة وترغب في تأكيد إكمالها؟'
-    });
-  };
-
-  // Function to handle step completion confirmation
-  const handleConfirmStepCompletion = async () => {
-    const { stepId } = confirmDialog;
+    const checklistComplete = step.details?.checklistItems?.every(item => item.checked) ?? false;
+    const documentsComplete = step.details?.documents?.every(doc => doc.checked) ?? false;
     
-    // Close the dialog
-    setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+    let newStatus: 'complete' | 'progress' | 'incomplete';
     
-    if (!user) return;
-    
-    try {
-      // Mark the step as complete in state
-      setSteps(prevSteps => 
-        prevSteps.map(s => {
-          if (s.id === stepId) {
-            return { ...s, status: 'complete' };
-          }
-          return s;
-        })
-      );
-      
-      // Save simplified completion status to database
-      const { error } = await supabase
-        .from('registration_steps')
-        .upsert({
-          profile_id: user.id,
-          step_id: stepId,
-          status: 'complete',
-          updated_at: new Date().toISOString(),
-          completed_at: new Date().toISOString()
-        })
-        .eq('profile_id', user.id)
-        .eq('step_id', stepId);
-
-      if (error) {
-        throw error;
-      }
-      
-      // Show success toast
-      toast({
-        title: "تم إكمال الخطوة بنجاح",
-        description: `لقد أتممت الخطوة ${stepId} من عملية تسجيل الشركة`,
-      });
-      
-      // Check if all steps are complete
-      const allComplete = steps.every(s => s.id === stepId || s.status === 'complete');
-      if (allComplete) {
-        toast({
-          title: "تهانينا!",
-          description: "لقد أكملت جميع خطوات تسجيل الشركة",
-        });
-      }
-      
-    } catch (error) {
-      console.error('Error updating step status:', error);
-      toast({
-        title: "خطأ في تحديث الحالة",
-        description: "حدث خطأ أثناء محاولة حفظ حالة الخطوة",
-        variant: "destructive",
-      });
-      
-      // Revert the state change
-      setSteps(prevSteps => 
-        prevSteps.map(s => {
-          if (s.id === stepId) {
-            return { ...s, status: 'progress' };
-          }
-          return s;
-        })
-      );
-    }
-  };
-
-  // Function to mark a step as in-progress
-  const handleStartStep = async (stepId: number) => {
-    if (!user) return;
-    
-    // Get the current step
-    const step = steps.find(s => s.id === stepId);
-    if (!step) return;
-    
-    // Only update if the step is not already complete
-    if (step.status === 'complete') {
-      return;
-    }
-    
-    try {
-      // Mark the step as in-progress in state
-      setSteps(prevSteps => 
-        prevSteps.map(s => {
-          if (s.id === stepId) {
-            return { ...s, status: 'progress' };
-          }
-          return s;
-        })
-      );
-      
-      // Save status to database
-      const { error } = await supabase
-        .from('registration_steps')
-        .upsert({
-          profile_id: user.id,
-          step_id: stepId,
-          status: 'progress',
-          updated_at: new Date().toISOString()
-        })
-        .eq('profile_id', user.id)
-        .eq('step_id', stepId);
-
-      if (error) {
-        throw error;
-      }
-      
-    } catch (error) {
-      console.error('Error updating step status:', error);
-      toast({
-        title: "خطأ في تحديث الحالة",
-        description: "حدث خطأ أثناء محاولة تحديث حالة الخطوة",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Handler for step click based on status
-  const handleStepClick = (stepId: number) => {
-    const step = steps.find(s => s.id === stepId);
-    if (!step) return;
-    
-    if (step.status === 'complete') {
-      toast({
-        title: `الخطوة ${stepId}: ${step.title}`,
-        description: "تم إكمال هذه الخطوة. يمكنك مراجعة أو تعديل المعلومات الخاصة بك.",
-      });
-    } else if (step.status === 'progress') {
-      // Open confirmation dialog if step is in progress
-      openConfirmationDialog(stepId);
+    // Only mark as complete if both checklist and documents are complete
+    if (checklistComplete && documentsComplete) {
+      newStatus = 'complete';
+    } else if (step.details?.checklistItems?.some(item => item.checked) || 
+              step.details?.documents?.some(doc => doc.checked)) {
+      newStatus = 'progress';
     } else {
-      // Start step if it's not started yet
-      handleStartStep(stepId);
-      toast({
-        title: `الخطوة ${stepId}: ${step.title}`,
-        description: "لنكمل هذه الخطوة الآن.",
-      });
+      newStatus = 'incomplete';
+    }
+
+    // Update state
+    setSteps(prevSteps => 
+      prevSteps.map(s => {
+        if (s.id === stepId) {
+          return { ...s, status: newStatus };
+        }
+        return s;
+      })
+    );
+
+    // Save to database
+    try {
+      const stepToUpdate = steps.find(s => s.id === stepId);
+      if (stepToUpdate && user) {
+        const { error } = await supabase
+          .from('registration_steps')
+          .upsert({
+            profile_id: user.id,
+            step_id: stepId,
+            status: newStatus,
+            documents: stepToUpdate.details?.documents || null,
+            checklist_items: stepToUpdate.details?.checklistItems || null,
+            updated_at: new Date().toISOString(),
+            completed_at: newStatus === 'complete' ? new Date().toISOString() : null
+          })
+          .eq('profile_id', user.id)
+          .eq('step_id', stepId);
+
+        if (error) {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('Error updating registration step:', error);
     }
   };
 
@@ -551,6 +452,24 @@ const Dashboard = () => {
   };
 
   const progressPercentage = calculateProgress();
+
+  // Handle step click
+  const handleStepClick = (stepId: number) => {
+    const step = steps.find(s => s.id === stepId);
+    if (step) {
+      if (step.status === 'complete') {
+        toast({
+          title: `الخطوة ${stepId}: ${step.title}`,
+          description: "تم إكمال هذه الخطوة. يمكنك مراجعة أو تعديل المعلومات الخاصة بك.",
+        });
+      } else {
+        toast({
+          title: `الخطوة ${stepId}: ${step.title}`,
+          description: "لنكمل هذه الخطوة الآن.",
+        });
+      }
+    }
+  };
 
   // Calculate total estimated cost
   const calculateTotalCost = () => {
@@ -698,4 +617,16 @@ const Dashboard = () => {
           
           <RegistrationSteps 
             steps={steps}
-            on
+            onStepClick={handleStepClick}
+            onDocumentToggle={handleDocumentToggle}
+            onChecklistToggle={handleChecklistToggle}
+          />
+        </div>
+      </main>
+      
+      <AiAssistant />
+    </div>
+  );
+};
+
+export default Dashboard;
