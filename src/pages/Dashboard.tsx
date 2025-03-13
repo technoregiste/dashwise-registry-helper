@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -8,6 +7,7 @@ import AiAssistant from '@/components/ai/AiAssistant';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
@@ -276,8 +276,9 @@ const Dashboard = () => {
                 status: dbStep.status as 'complete' | 'progress' | 'incomplete',
                 details: {
                   ...step.details,
-                  documents: dbStep.documents as Document[] || step.details?.documents,
-                  checklistItems: dbStep.checklist_items as ChecklistItem[] || step.details?.checklistItems,
+                  // Safely type-cast documents and checklist_items
+                  documents: dbStep.documents ? (dbStep.documents as unknown as Document[]) : step.details?.documents,
+                  checklistItems: dbStep.checklist_items ? (dbStep.checklist_items as unknown as ChecklistItem[]) : step.details?.checklistItems,
                 }
               };
             }
