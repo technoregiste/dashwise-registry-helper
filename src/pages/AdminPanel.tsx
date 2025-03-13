@@ -15,6 +15,23 @@ interface StartupData {
   status: 'pending' | 'in-progress' | 'completed';
 }
 
+// Define a basic profile type to address the 'never' type issue
+interface Profile {
+  id: string;
+  founder_name: string;
+  company_name: string;
+  phone: string;
+  [key: string]: any;
+}
+
+// Define a step type for error handling
+interface Step {
+  profile_id: string;
+  step_id: number;
+  status: string;
+  [key: string]: any;
+}
+
 const AdminPanel = () => {
   const [startups, setStartups] = useState<StartupData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,14 +62,18 @@ const AdminPanel = () => {
       
       if (stepsError) throw stepsError;
       
+      // Safely cast data to known types
+      const typedProfiles = profiles as Profile[] | null;
+      const typedSteps = steps as Step[] | null;
+      
       // Process the data to match our StartupData interface
-      const processedData: StartupData[] = profiles ? profiles.map((profile, index) => {
+      const processedData: StartupData[] = typedProfiles ? typedProfiles.map((profile, index) => {
         // Find user email
         const user = users && users.users ? users.users.find(u => u.id === profile.id) : undefined;
         const email = user ? user.email : '';
         
         // Calculate progress
-        const userSteps = steps ? steps.filter(step => step.profile_id === profile.id) : [];
+        const userSteps = typedSteps ? typedSteps.filter(step => step.profile_id === profile.id) : [];
         const totalSteps = userSteps.length || 1;
         const completedSteps = userSteps.filter(step => step.status === 'complete').length;
         const inProgressSteps = userSteps.filter(step => step.status === 'progress').length;

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -100,7 +99,7 @@ const Dashboard = () => {
         documents: [
           { id: '3-1', name: 'بطاقة التعريف الوطنية للمؤسسين والمسير', checked: true },
           { id: '3-2', name: 'شهادة حجز الاسم (من البطاقة 1)', checked: true },
-          { id: '3-3', name: 'عقد الإيجار أو سند الملكية او الاستفادة للمقر الرسمي', checked: false },
+          { id: '3-3', name: 'عقد الإيجار أو سند الملكية او شهادة الاستفادة للمقر الرسمي', checked: false },
           { id: '3-4', name: 'عقد التأسيس والنظام الأساسي من الموثق', checked: false }
         ],
         notes: [
@@ -403,14 +402,23 @@ const Dashboard = () => {
     try {
       const stepToUpdate = steps.find(s => s.id === stepId);
       if (stepToUpdate && user) {
+        // Convert document and checklist arrays to proper Json format first
+        const documentsJson = stepToUpdate.details?.documents 
+          ? JSON.parse(JSON.stringify(stepToUpdate.details.documents))
+          : null;
+        
+        const checklistJson = stepToUpdate.details?.checklistItems 
+          ? JSON.parse(JSON.stringify(stepToUpdate.details.checklistItems))
+          : null;
+
         const { error } = await supabase
           .from('registration_steps')
           .upsert({
             profile_id: user.id,
             step_id: stepId,
             status: newStatus,
-            documents: stepToUpdate.details?.documents as Json || null,
-            checklist_items: stepToUpdate.details?.checklistItems as Json || null,
+            documents: documentsJson,
+            checklist_items: checklistJson,
             updated_at: new Date().toISOString(),
             completed_at: newStatus === 'complete' ? new Date().toISOString() : null
           })
