@@ -2,39 +2,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import StepCard from './StepCard';
-import { StatusType } from './StatusBadge';
-
-export interface Document {
-  id: string;
-  name: string;
-  checked: boolean;
-}
-
-export interface ChecklistItem {
-  id: string;
-  text: string;
-  checked: boolean;
-}
-
-export interface StepData {
-  id: number;
-  title: string;
-  status: StatusType;
-  description: string;
-  error?: string;
-  details?: {
-    cost?: string;
-    timeframe?: string;
-    requirements?: string[];
-    options?: string[];
-    documents?: Document[];
-    steps?: string[];
-    authorities?: string[];
-    checklistItems?: ChecklistItem[];
-    notes?: string[];
-    [key: string]: any;
-  };
-}
+import { StepData } from '@/types/dashboard';
 
 interface RegistrationStepsProps {
   steps: StepData[];

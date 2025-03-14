@@ -1,17 +1,6 @@
 
 import { StatusType } from '@/components/dashboard/StatusBadge';
-
-export interface Document {
-  id: string;
-  name: string;
-  checked: boolean;
-}
-
-export interface ChecklistItem {
-  id: string;
-  text: string;
-  checked: boolean;
-}
+import { Document, ChecklistItem } from '@/components/dashboard/StepCardTypes';
 
 export interface StepData {
   id: number;
