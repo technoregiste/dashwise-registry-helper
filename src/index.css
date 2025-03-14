@@ -107,23 +107,3 @@
 .status-badge:hover {
   filter: brightness(1.1);
 }
-
-/* Animation for level completion */
-@keyframes levelUp {
-  0% { 
-    transform: scale(1);
-    filter: brightness(1);
-  }
-  50% { 
-    transform: scale(1.15);
-    filter: brightness(1.2);
-  }
-  100% { 
-    transform: scale(1);
-    filter: brightness(1);
-  }
-}
-
-.level-up {
-  animation: levelUp 0.6s ease-in-out;
-}

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import RegistrationSteps from '@/components/dashboard/RegistrationSteps';
 import AiAssistant from '@/components/ai/AiAssistant';
@@ -28,15 +28,6 @@ const Dashboard = () => {
       }, 1000);
     }
   }, [loading, profile]);
-
-  // Create wrapper functions to handle the event objects
-  const handleDocumentToggleWithEvent = (stepId: number, docId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    handleDocumentToggle(stepId, docId, e.target.checked);
-  };
-  
-  const handleChecklistToggleWithEvent = (stepId: number, itemId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    handleChecklistToggle(stepId, itemId, e.target.checked);
-  };
 
   if (loading) {
     return (
@@ -71,17 +62,19 @@ const Dashboard = () => {
     return Math.round(((completed + inProgress + progressPoints) / total) * 100);
   };
 
+  const progressPercentage = calculateProgress();
+
   return (
     <div className="flex flex-col min-h-screen bg-secondary/30">
       <Header 
         startupName={profile?.company_name || "شركتك الناشئة"}
-        progressPercentage={calculateProgress()}
+        progressPercentage={progressPercentage}
       />
       
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ProfileInfo profile={profile} className="md:col-span-2" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ProfileInfo profile={profile} />
             <DashboardMetrics steps={steps} />
           </div>
           

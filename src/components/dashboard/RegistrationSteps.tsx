@@ -24,23 +24,6 @@ const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     animationDelay: `${index * 0.1}s`
   });
 
-  // Create wrapper functions to convert between the different function signatures
-  const handleDocumentToggle = (stepId: number) => {
-    return (e: React.ChangeEvent<HTMLInputElement>, docId: string) => {
-      if (onDocumentToggle) {
-        onDocumentToggle(stepId, docId, e.target.checked);
-      }
-    };
-  };
-
-  const handleChecklistToggle = (stepId: number) => {
-    return (e: React.ChangeEvent<HTMLInputElement>, itemId: string) => {
-      if (onChecklistToggle) {
-        onChecklistToggle(stepId, itemId, e.target.checked);
-      }
-    };
-  };
-
   return (
     <div className={cn(className)}>
       <h2 className="text-2xl font-semibold mb-6">خطوات التسجيل</h2>
@@ -60,8 +43,8 @@ const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
               error={step.error}
               details={step.details}
               onClick={() => onStepClick(step.id)}
-              onDocumentToggle={handleDocumentToggle(step.id)}
-              onChecklistToggle={handleChecklistToggle(step.id)}
+              onDocumentToggle={onDocumentToggle}
+              onChecklistToggle={onChecklistToggle}
             />
           </div>
         ))}
