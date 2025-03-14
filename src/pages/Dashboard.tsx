@@ -22,7 +22,7 @@ const Dashboard = () => {
   } = useDashboardData();
   
   const [selectedStep, setSelectedStep] = useState<StepData | null>(null);
-  const [viewMode, setViewMode] = useState<'roadmap' | 'cards'>('roadmap');
+  const [viewMode, setViewMode] = useState<'roadmap' | 'cards' | 'game'>('game');
 
   useEffect(() => {
     if (!loading && profile) {
@@ -109,6 +109,12 @@ const Dashboard = () => {
           
           <div className="flex justify-end space-x-2 rtl:space-x-reverse">
             <button 
+              onClick={() => setViewMode('game')}
+              className={`px-4 py-2 text-sm rounded-md transition-colors ${viewMode === 'game' ? 'bg-primary text-white' : 'bg-white text-gray-600'}`}
+            >
+              عرض كلعبة
+            </button>
+            <button 
               onClick={() => setViewMode('roadmap')}
               className={`px-4 py-2 text-sm rounded-md transition-colors ${viewMode === 'roadmap' ? 'bg-primary text-white' : 'bg-white text-gray-600'}`}
             >
@@ -122,7 +128,14 @@ const Dashboard = () => {
             </button>
           </div>
           
-          {viewMode === 'roadmap' ? (
+          {viewMode === 'game' ? (
+            <div className="animate-fade-in">
+              <RegistrationRoadmap 
+                steps={steps}
+                onStepClick={handleStepSelection}
+              />
+            </div>
+          ) : viewMode === 'roadmap' ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <RegistrationRoadmap 
