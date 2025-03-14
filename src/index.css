@@ -108,33 +108,7 @@
   filter: brightness(1.1);
 }
 
-/* Roadmap Animation */
-.roadmap-checkpoint {
-  transform-origin: top center;
-  animation: fadeInUp 0.5s ease forwards;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Staggered animation for children */
-.roadmap-checkpoint:nth-child(1) { animation-delay: 0.1s; }
-.roadmap-checkpoint:nth-child(2) { animation-delay: 0.2s; }
-.roadmap-checkpoint:nth-child(3) { animation-delay: 0.3s; }
-.roadmap-checkpoint:nth-child(4) { animation-delay: 0.4s; }
-.roadmap-checkpoint:nth-child(5) { animation-delay: 0.5s; }
-.roadmap-checkpoint:nth-child(6) { animation-delay: 0.6s; }
-.roadmap-checkpoint:nth-child(7) { animation-delay: 0.7s; }
-
-/* Level-up animation */
+/* Animation for level completion */
 @keyframes levelUp {
   0% { 
     transform: scale(1);
@@ -152,47 +126,4 @@
 
 .level-up {
   animation: levelUp 0.6s ease-in-out;
-}
-
-/* Game roadmap styles */
-.game-roadmap {
-  position: relative;
-}
-
-.game-step {
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.game-step:hover {
-  transform: scale(1.05);
-}
-
-.game-step::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  filter: blur(8px);
-  z-index: -1;
-}
-
-/* Optional 3D effect for step buttons */
-.game-step .rounded-full {
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
-  transform-style: preserve-3d;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-.game-step:active .rounded-full {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
-}
-
-/* Tooltip hover effect */
-.game-step:hover .group-hover\:visible {
-  visibility: visible;
-  opacity: 1;
 }
