@@ -273,10 +273,20 @@ export function useDashboardData() {
           const formattedSteps = stepsData.map((dbStep: any) => {
             const defaultStep = defaultSteps.find(s => s.id === dbStep.step_id) || defaultSteps[0];
             
+            // Map database status to frontend status
+            let frontendStatus = 'incomplete';
+            if (dbStep.status === 'complete') {
+              frontendStatus = 'complete';
+            } else if (dbStep.status === 'progress' || dbStep.status === 'in_progress') {
+              frontendStatus = 'progress';
+            } else if (dbStep.status === 'pending') {
+              frontendStatus = 'incomplete';
+            }
+            
             return {
               ...defaultStep,
               id: dbStep.step_id,
-              status: dbStep.status as any,
+              status: frontendStatus as any,
               details: {
                 ...defaultStep.details,
                 documents: dbStep.documents || defaultStep.details?.documents,
@@ -307,11 +317,21 @@ export function useDashboardData() {
   const updateStepInDatabase = async (stepId: number, updatedStep: any) => {
     if (!user) return;
 
+    // Map frontend status to database status
+    let dbStatus = 'pending';
+    if (updatedStep.status === 'complete') {
+      dbStatus = 'complete';
+    } else if (updatedStep.status === 'progress') {
+      dbStatus = 'progress';
+    } else if (updatedStep.status === 'incomplete') {
+      dbStatus = 'pending';
+    }
+
     try {
       const { error } = await supabase
         .from('registration_steps')
         .update({
-          status: updatedStep.status,
+          status: dbStatus,
           documents: updatedStep.details?.documents || null,
           checklist_items: updatedStep.details?.checklistItems || null,
           completed_at: updatedStep.status === 'complete' ? new Date().toISOString() : null,
