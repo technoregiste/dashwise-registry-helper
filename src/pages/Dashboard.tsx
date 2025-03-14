@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import Header from '@/components/layout/Header';
 import RegistrationSteps from '@/components/dashboard/RegistrationSteps';
@@ -48,6 +49,15 @@ const Dashboard = () => {
       setSelectedStep(step);
       handleStepClick(stepId);
     }
+  };
+
+  // Create wrapper functions to handle the event objects
+  const handleDocumentToggleWithEvent = (stepId: number, docId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    handleDocumentToggle(stepId, docId, e.target.checked);
+  };
+  
+  const handleChecklistToggleWithEvent = (stepId: number, itemId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    handleChecklistToggle(stepId, itemId, e.target.checked);
   };
 
   if (loading) {
@@ -132,8 +142,8 @@ const Dashboard = () => {
                     error={selectedStep.error}
                     details={selectedStep.details}
                     onClick={() => {}}
-                    onDocumentToggle={(e, docId) => handleDocumentToggle(selectedStep.id, docId, e.target.checked)}
-                    onChecklistToggle={(e, itemId) => handleChecklistToggle(selectedStep.id, itemId, e.target.checked)}
+                    onDocumentToggle={(e, docId) => handleDocumentToggleWithEvent(selectedStep.id, docId, e)}
+                    onChecklistToggle={(e, itemId) => handleChecklistToggleWithEvent(selectedStep.id, itemId, e)}
                     className="w-full h-full"
                   />
                 </div>

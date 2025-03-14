@@ -29,14 +29,14 @@ const StepCard: React.FC<StepCardProps> = ({
   const handleDocumentToggle = (e: React.ChangeEvent<HTMLInputElement>, docId: string) => {
     e.stopPropagation();
     if (onDocumentToggle) {
-      onDocumentToggle(number, docId, e.target.checked);
+      onDocumentToggle(e, docId);
     }
   };
 
   const handleChecklistToggle = (e: React.ChangeEvent<HTMLInputElement>, itemId: string) => {
     e.stopPropagation();
     if (onChecklistToggle) {
-      onChecklistToggle(number, itemId, e.target.checked);
+      onChecklistToggle(e, itemId);
     }
   };
 
