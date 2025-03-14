@@ -1,16 +1,18 @@
 
 import React from 'react';
 import { ProfileData } from '@/types/dashboard';
+import { cn } from '@/lib/utils';
 
 interface ProfileInfoProps {
   profile: ProfileData | null;
+  className?: string;
 }
 
-const ProfileInfo: React.FC<ProfileInfoProps> = ({ profile }) => {
+const ProfileInfo: React.FC<ProfileInfoProps> = ({ profile, className }) => {
   if (!profile) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-card p-6 animate-fade-in">
+    <div className={cn("bg-white rounded-xl shadow-card p-6 animate-fade-in", className)}>
       <h2 className="text-lg font-semibold mb-4">المعلومات الشخصية</h2>
       <div className="space-y-3">
         <div className="flex justify-between">

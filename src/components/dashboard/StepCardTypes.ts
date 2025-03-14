@@ -34,7 +34,7 @@ export interface StepCardProps {
   onClick: () => void;
   error?: string;
   details?: StepCardDetails;
-  onDocumentToggle?: (stepId: number, docId: string, checked: boolean) => void;
-  onChecklistToggle?: (stepId: number, itemId: string, checked: boolean) => void;
+  onDocumentToggle?: (e: React.ChangeEvent<HTMLInputElement>, docId: string) => void;
+  onChecklistToggle?: (e: React.ChangeEvent<HTMLInputElement>, itemId: string) => void;
   className?: string;
 }

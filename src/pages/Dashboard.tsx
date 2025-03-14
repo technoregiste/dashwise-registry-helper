@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Header from '@/components/layout/Header';
 import RegistrationSteps from '@/components/dashboard/RegistrationSteps';
@@ -84,13 +83,11 @@ const Dashboard = () => {
     return Math.round(((completed + inProgress + progressPoints) / total) * 100);
   };
 
-  const progressPercentage = calculateProgress();
-
   return (
     <div className="flex flex-col min-h-screen bg-secondary/30">
       <Header 
         startupName={profile?.company_name || "شركتك الناشئة"}
-        progressPercentage={progressPercentage}
+        progressPercentage={calculateProgress()}
       />
       
       <main className="flex-1 container mx-auto px-4 py-8">
