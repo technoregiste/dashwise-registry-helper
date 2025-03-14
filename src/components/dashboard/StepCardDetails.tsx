@@ -20,7 +20,9 @@ const StepCardDetailsComponent: React.FC<StepCardDetailsProps> = ({
   return (
     <div className="mt-3 space-y-3">
       {/* Steps List */}
-      {details.steps && <StepsList steps={details.steps} />}
+      {details.steps && details.steps.length > 0 && (
+        <StepsList steps={details.steps} />
+      )}
       
       {/* Costs Section */}
       {details.cost && (
@@ -29,6 +31,7 @@ const StepCardDetailsComponent: React.FC<StepCardDetailsProps> = ({
           bgColor="bg-orange-50" 
           textColor="text-orange-700"
           icon="💰"
+          className="transition-all duration-300"
         >
           <span className="text-sm text-gray-700">{details.cost}</span>
         </InfoSection>
@@ -41,6 +44,7 @@ const StepCardDetailsComponent: React.FC<StepCardDetailsProps> = ({
           bgColor="bg-purple-50" 
           textColor="text-purple-700"
           icon="⏱️"
+          className="transition-all duration-300"
         >
           <span className="text-sm text-gray-700">{details.timeframe}</span>
         </InfoSection>
@@ -60,6 +64,7 @@ const StepCardDetailsComponent: React.FC<StepCardDetailsProps> = ({
           title="ملاحظات إضافية" 
           bgColor="bg-yellow-50" 
           textColor="text-yellow-700"
+          className="transition-all duration-300"
         >
           <ul className="list-disc list-inside mr-1 space-y-1">
             {details.notes.map((note, i) => (
@@ -75,11 +80,12 @@ const StepCardDetailsComponent: React.FC<StepCardDetailsProps> = ({
           title="الخيارات المتاحة" 
           bgColor="bg-blue-50" 
           textColor="text-blue-700"
+          className="transition-all duration-300"
         >
           <ul className="list-none mr-0 space-y-1.5">
             {details.options.map((opt, i) => (
               <li key={i} className="flex items-start">
-                <span className="inline-flex justify-center items-center bg-blue-200 text-blue-800 ml-2">☑</span>
+                <span className="inline-flex justify-center items-center bg-blue-200 text-blue-800 w-6 h-6 rounded-full text-xs ml-2">☑</span>
                 <span className="text-sm text-gray-700">{opt}</span>
               </li>
             ))}

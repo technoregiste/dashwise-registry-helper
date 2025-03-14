@@ -1,5 +1,6 @@
 
 import React from 'react';
+import InfoSection from './InfoSection';
 
 interface StepsListProps {
   steps: string[];
@@ -9,8 +10,12 @@ const StepsList: React.FC<StepsListProps> = ({ steps }) => {
   if (!steps || steps.length === 0) return null;
   
   return (
-    <div className="bg-green-50 p-3 rounded-lg">
-      <h4 className="text-green-700 font-medium text-sm mb-2">الخطوات التفصيلية</h4>
+    <InfoSection 
+      title="الخطوات التفصيلية" 
+      bgColor="bg-green-50" 
+      textColor="text-green-700"
+      className="transition-all duration-300"
+    >
       <ol className="list-none mr-0 space-y-1.5">
         {steps.map((step, i) => (
           <li key={i} className="flex items-start">
@@ -21,7 +26,7 @@ const StepsList: React.FC<StepsListProps> = ({ steps }) => {
           </li>
         ))}
       </ol>
-    </div>
+    </InfoSection>
   );
 };
 
