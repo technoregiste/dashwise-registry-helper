@@ -5,9 +5,10 @@ import MetricsPanel from './MetricsPanel';
 
 interface DashboardMetricsProps {
   steps: StepData[];
+  activeStepIndex?: number;
 }
 
-const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ steps }) => {
+const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ steps, activeStepIndex = 0 }) => {
   const calculateProgress = () => {
     if (steps.length === 0) return 0;
     
@@ -34,9 +35,9 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ steps }) => {
   };
 
   const calculateTotalCost = () => {
-    let totalMin = 0;
-    let totalMax = 0;
+    let totalCost = 0;
     
+    // Calculate total cost for all steps
     steps.forEach(step => {
       if (step.details?.cost) {
         const costText = step.details.cost;
@@ -45,75 +46,110 @@ const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ steps }) => {
         
         if (matches) {
           if (matches.length >= 2) {
-            const min = parseFloat(matches[0].replace(/,/g, ''));
+            // If there's a range, use the maximum value
             const max = parseFloat(matches[1].replace(/,/g, ''));
-            totalMin += min;
-            totalMax += max;
+            totalCost += max;
           } 
           else if (matches.length === 1) {
             const value = parseFloat(matches[0].replace(/,/g, ''));
-            totalMin += value;
-            totalMax += value;
+            totalCost += value;
           }
         }
       }
     });
     
-    if (totalMin === totalMax) {
-      return `${totalMin.toLocaleString()} دج`;
-    } else {
-      return `${totalMin.toLocaleString()} - ${totalMax.toLocaleString()} دج`;
-    }
+    // Calculate cost of completed steps
+    let completedCost = 0;
+    steps.filter(step => step.status === 'complete').forEach(step => {
+      if (step.details?.cost) {
+        const costText = step.details.cost;
+        
+        const matches = costText.match(/\d{1,3}(,\d{3})*(\.\d+)?/g);
+        
+        if (matches) {
+          if (matches.length >= 2) {
+            const max = parseFloat(matches[1].replace(/,/g, ''));
+            completedCost += max;
+          } 
+          else if (matches.length === 1) {
+            const value = parseFloat(matches[0].replace(/,/g, ''));
+            completedCost += value;
+          }
+        }
+      }
+    });
+    
+    // Remaining cost
+    const remainingCost = totalCost - completedCost;
+    
+    return `${remainingCost.toLocaleString()} دج`;
   };
 
-  const calculateTotalTime = () => {
-    let minDays = 0;
-    let maxDays = 0;
+  const calculateRemainingTime = () => {
+    let totalDays = 0;
     
+    // Calculate total time for all steps
     steps.forEach(step => {
       if (step.details?.timeframe) {
         const timeText = step.details.timeframe;
         
         if (timeText.includes('ساعة')) {
           const hours = parseInt(timeText.match(/\d+/)?.[0] || '0');
-          minDays += hours / 24;
-          maxDays += hours / 24;
+          totalDays += hours / 24;
         }
         else if (timeText.match(/(\d+)-(\d+)\s+أيام?/)) {
           const matches = timeText.match(/(\d+)-(\d+)\s+أيام?/);
           if (matches && matches.length >= 3) {
-            minDays += parseInt(matches[1]);
-            maxDays += parseInt(matches[2]);
+            // Use the maximum value for estimates
+            totalDays += parseInt(matches[2]);
           }
         }
         else if (timeText.match(/(\d+)\s+أيام?/)) {
           const days = parseInt(timeText.match(/(\d+)/)?.[0] || '0');
-          minDays += days;
-          maxDays += days;
+          totalDays += days;
         }
       }
     });
     
-    const minDaysRounded = Math.ceil(minDays);
-    const maxDaysRounded = Math.ceil(maxDays);
+    // Calculate time of completed steps
+    let completedDays = 0;
+    steps.filter(step => step.status === 'complete').forEach(step => {
+      if (step.details?.timeframe) {
+        const timeText = step.details.timeframe;
+        
+        if (timeText.includes('ساعة')) {
+          const hours = parseInt(timeText.match(/\d+/)?.[0] || '0');
+          completedDays += hours / 24;
+        }
+        else if (timeText.match(/(\d+)-(\d+)\s+أيام?/)) {
+          const matches = timeText.match(/(\d+)-(\d+)\s+أيام?/);
+          if (matches && matches.length >= 3) {
+            completedDays += parseInt(matches[2]);
+          }
+        }
+        else if (timeText.match(/(\d+)\s+أيام?/)) {
+          const days = parseInt(timeText.match(/(\d+)/)?.[0] || '0');
+          completedDays += days;
+        }
+      }
+    });
     
-    if (minDaysRounded === maxDaysRounded) {
-      return `${minDaysRounded} يوم`;
-    } else {
-      return `${minDaysRounded} - ${maxDaysRounded} يوم`;
-    }
+    // Remaining days
+    const remainingDays = Math.max(0, Math.ceil(totalDays - completedDays));
+    
+    return `${remainingDays} يوم`;
   };
 
   const progressPercentage = calculateProgress();
-  const estimatedCost = calculateTotalCost();
-  const estimatedTime = calculateTotalTime();
+  const remainingCost = calculateTotalCost();
+  const remainingTime = calculateRemainingTime();
 
   return (
     <MetricsPanel
       completionPercentage={progressPercentage}
-      estimatedTime={estimatedTime}
+      estimatedTime={remainingTime}
       daysRemaining={14}
-      estimatedCost={estimatedCost}
+      estimatedCost={remainingCost}
     />
   );
 };

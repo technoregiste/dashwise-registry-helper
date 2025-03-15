@@ -3,10 +3,22 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import StepCard from './StepCard';
 import { StepData } from '@/types/dashboard';
+import { Separator } from '@/components/ui/separator';
+import { 
+  FileText, 
+  Building2, 
+  FileCheck, 
+  BookOpen, 
+  Shield, 
+  FileBadge, 
+  BarChart3
+} from 'lucide-react';
 
 interface RegistrationStepsProps {
   steps: StepData[];
+  activeStepIndex: number;
   onStepClick: (stepId: number) => void;
+  onStepNavigation: (index: number) => void;
   onDocumentToggle?: (stepId: number, docId: string, checked: boolean) => void;
   onChecklistToggle?: (stepId: number, itemId: string, checked: boolean) => void;
   className?: string;
@@ -14,40 +26,81 @@ interface RegistrationStepsProps {
 
 const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   steps,
+  activeStepIndex,
   onStepClick,
+  onStepNavigation,
   onDocumentToggle,
   onChecklistToggle,
   className
 }) => {
-  // Function to determine animation delay based on index
-  const getAnimationDelay = (index: number) => ({
-    animationDelay: `${index * 0.1}s`
-  });
+  const stepIcons = [
+    { icon: FileText, label: 'اختيار اسم الشركة' },
+    { icon: Building2, label: 'اختيار الهيكل القانوني' },
+    { icon: FileCheck, label: 'تحضير الوثائق الرسمية' },
+    { icon: BookOpen, label: 'تسجيل الشركة في السجل التجاري' },
+    { icon: Shield, label: 'التسجيل في الضمان الاجتماعي' },
+    { icon: FileBadge, label: 'الحصول على الرقم الجبائي' },
+    { icon: BarChart3, label: 'الحصول على الرقم الإحصائي' }
+  ];
+
+  const activeStep = steps[activeStepIndex] || steps[0];
 
   return (
-    <div className={cn(className)}>
-      <h2 className="text-2xl font-semibold mb-6">خطوات التسجيل</h2>
+    <div className={cn(className, "registration-steps")}>
+      <h2 className="text-2xl font-semibold mb-4 text-center">خطوات التسجيل</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {steps.map((step, index) => (
-          <div 
-            key={step.id} 
-            className="animate-scale-up" 
-            style={getAnimationDelay(index)}
-          >
+      {/* Navigation Bar */}
+      <div className="bg-white rounded-xl p-4 mb-6 shadow-card overflow-x-auto">
+        <div className="flex justify-between items-center min-w-max">
+          {steps.map((step, index) => {
+            const StepIcon = stepIcons[index]?.icon || FileText;
+            return (
+              <div key={step.id} className="relative flex flex-col items-center">
+                <button
+                  onClick={() => onStepNavigation(index)}
+                  className={cn(
+                    "w-12 h-12 rounded-full mb-2 flex items-center justify-center transition-all",
+                    step.status === 'complete' ? "bg-status-complete text-white" :
+                    step.status === 'progress' ? "bg-status-progress text-white" :
+                    "bg-gray-100 text-gray-500",
+                    activeStepIndex === index ? "ring-2 ring-primary ring-offset-2" : ""
+                  )}
+                >
+                  <StepIcon size={20} />
+                </button>
+                <span className="text-xs text-muted-foreground w-20 text-center">{step.title}</span>
+                
+                {/* Connecting line */}
+                {index < steps.length - 1 && (
+                  <div 
+                    className={cn(
+                      "absolute top-6 right-12 h-0.5 w-[calc(100%-1.5rem)]",
+                      step.status === 'complete' ? "bg-status-complete" : "bg-gray-200"
+                    )}
+                  ></div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      
+      {/* Current Step Card */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-3xl animate-fade-in">
+          {activeStep && (
             <StepCard
-              number={step.id}
-              title={step.title}
-              status={step.status}
-              description={step.description}
-              error={step.error}
-              details={step.details}
-              onClick={() => onStepClick(step.id)}
+              number={activeStep.id}
+              title={activeStep.title}
+              status={activeStep.status}
+              description={activeStep.description}
+              details={activeStep.details}
+              onClick={() => onStepClick(activeStep.id)}
               onDocumentToggle={onDocumentToggle}
               onChecklistToggle={onChecklistToggle}
             />
-          </div>
-        ))}
+          )}
+        </div>
       </div>
     </div>
   );

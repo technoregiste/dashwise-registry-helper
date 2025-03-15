@@ -23,49 +23,56 @@ const MetricsPanel: React.FC<MetricsPanelProps> = ({
       icon: PercentIcon,
       label: 'التقدم الإجمالي',
       value: `${completionPercentage}% مكتمل`,
-      color: 'text-status-progress'
+      bgColor: 'bg-blue-50',
+      iconBgColor: 'bg-white',
+      iconColor: 'text-blue-500'
     },
     {
       icon: ClockIcon,
-      label: 'الوقت المقدر',
+      label: 'الوقت المتبقي',
       value: estimatedTime,
-      color: 'text-indigo-500'
+      bgColor: 'bg-purple-50',
+      iconBgColor: 'bg-white',
+      iconColor: 'text-purple-500'
     },
     {
       icon: CalendarIcon,
       label: 'الأيام المتبقية',
       value: `${daysRemaining} يوم`,
-      color: daysRemaining <= 5 ? 'text-status-incomplete' : 'text-status-complete'
+      bgColor: 'bg-green-50',
+      iconBgColor: 'bg-white',
+      iconColor: daysRemaining <= 5 ? 'text-status-incomplete' : 'text-green-500'
+    },
+    {
+      icon: DollarSign,
+      label: 'التكلفة المتبقية',
+      value: estimatedCost || '0 دج',
+      bgColor: 'bg-amber-50',
+      iconBgColor: 'bg-white',
+      iconColor: 'text-amber-500'
     }
   ];
-
-  // Add estimated cost if provided
-  if (estimatedCost) {
-    metrics.push({
-      icon: DollarSign,
-      label: 'التكلفة المقدرة',
-      value: estimatedCost,
-      color: 'text-amber-500'
-    });
-  }
 
   return (
     <div className={cn(
       "bg-white rounded-xl shadow-card p-6 animate-fade-in",
       className
     )}>
-      <h2 className="text-lg font-semibold mb-4">تقدم التسجيل</h2>
+      <h2 className="text-lg font-semibold mb-4 text-center">تقدم التسجيل</h2>
       
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         {metrics.map((metric, index) => (
           <div 
             key={index}
-            className="bg-secondary/50 rounded-lg p-3 flex items-center"
+            className={cn(
+              "rounded-lg p-3 flex items-center",
+              metric.bgColor
+            )}
           >
             <div className={cn(
               "w-9 h-9 rounded-full flex items-center justify-center mr-3",
-              "bg-white shadow-subtle",
-              metric.color
+              metric.iconBgColor, "shadow-subtle",
+              metric.iconColor
             )}>
               <metric.icon size={18} />
             </div>
