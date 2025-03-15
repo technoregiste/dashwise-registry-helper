@@ -26,6 +26,11 @@ interface UserData {
   progress: number;
 }
 
+interface UserEmail {
+  id: string;
+  email: string;
+}
+
 const AdminPanel = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -79,7 +84,7 @@ const AdminPanel = () => {
         // Combine data
         const usersData = profiles.map(profile => {
           // Get user email
-          const userEmail = userEmails.find(u => u.id === profile.id);
+          const userEmail = userEmails?.find(u => u.id === profile.id);
           const email = userEmail ? userEmail.email : '';
 
           // Calculate progress
