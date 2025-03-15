@@ -22,6 +22,7 @@ const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage }) => {
         title: "تم تسجيل الخروج",
         description: "تم تسجيل خروجك بنجاح من النظام",
       });
+      // Navigate to auth page after successful logout
       navigate('/auth');
     } catch (error) {
       console.error('Error signing out:', error);
@@ -39,10 +40,7 @@ const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage }) => {
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-4">
             <Link to="/" className="flex items-center">
-              <div className="bg-primary w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold ml-2">
-                ر
-              </div>
-              <span className="text-xl font-semibold">{startupName}</span>
+              <span className="text-xl font-semibold text-primary">technoregiste</span>
             </Link>
           </div>
           
