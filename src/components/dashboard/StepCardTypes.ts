@@ -32,7 +32,6 @@ export interface StepCardProps {
   status: StatusType;
   description: string;
   onClick: () => void;
-  error?: string;
   details?: StepCardDetails;
   onDocumentToggle?: (stepId: number, docId: string, checked: boolean) => void;
   onChecklistToggle?: (stepId: number, itemId: string, checked: boolean) => void;

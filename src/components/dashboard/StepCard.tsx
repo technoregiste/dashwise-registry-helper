@@ -13,7 +13,6 @@ const StepCard: React.FC<StepCardProps> = ({
   status,
   description,
   onClick,
-  error,
   details,
   onDocumentToggle,
   onChecklistToggle,
@@ -58,12 +57,6 @@ const StepCard: React.FC<StepCardProps> = ({
         <h4 className="text-blue-700 font-medium text-sm mb-1">فقرة توضيحية</h4>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
-      
-      {error && (
-        <div className="mb-4 p-3 bg-status-incomplete/10 border border-status-incomplete/20 rounded-md text-sm text-status-incomplete">
-          <strong>خطأ:</strong> {error}
-        </div>
-      )}
 
       {details && (
         <div className="mb-4">

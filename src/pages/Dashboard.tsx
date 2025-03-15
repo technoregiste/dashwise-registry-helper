@@ -4,7 +4,6 @@ import Header from '@/components/layout/Header';
 import RegistrationSteps from '@/components/dashboard/RegistrationSteps';
 import AiAssistant from '@/components/ai/AiAssistant';
 import { toast } from '@/hooks/use-toast';
-import ProfileInfo from '@/components/dashboard/ProfileInfo';
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics';
 import { useDashboardData } from '@/hooks/useDashboardData';
 
@@ -73,8 +72,7 @@ const Dashboard = () => {
       
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ProfileInfo profile={profile} />
+          <div className="grid grid-cols-1 gap-6">
             <DashboardMetrics steps={steps} />
           </div>
           

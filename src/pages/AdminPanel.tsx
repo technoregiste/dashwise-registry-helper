@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface StartupData {
-  id: number;
+  id: string;
   name: string;
   founderName: string;
   phone: string;
@@ -13,54 +18,114 @@ interface StartupData {
 }
 
 const AdminPanel = () => {
-  // Mock data for startups
-  const [startups, setStartups] = useState<StartupData[]>([
-    {
-      id: 1,
-      name: "تك فيستا لابز",
-      founderName: "أحمد محمود",
-      phone: "0550123456",
-      email: "info@techvista.dz",
-      progress: 42,
-      status: 'in-progress'
-    },
-    {
-      id: 2,
-      name: "سمارت سوليوشنز",
-      founderName: "سارة رحمان",
-      phone: "0660789123",
-      email: "contact@smartsolutions.dz",
-      progress: 85,
-      status: 'in-progress'
-    },
-    {
-      id: 3,
-      name: "ديجيتال اينوفيت",
-      founderName: "محمد خالد",
-      phone: "0770456789",
-      email: "info@digitalinnovate.dz",
-      progress: 100,
-      status: 'completed'
-    },
-    {
-      id: 4,
-      name: "تيك مايند",
-      founderName: "يوسف ابراهيم",
-      phone: "0540123789",
-      email: "contact@techmind.dz",
-      progress: 14,
-      status: 'pending'
-    },
-    {
-      id: 5,
-      name: "أجيل ديف",
-      founderName: "ليلى عمران",
-      phone: "0660452178",
-      email: "info@agiledev.dz",
-      progress: 71,
-      status: 'in-progress'
+  const [startups, setStartups] = useState<StartupData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      if (!user) {
+        toast({
+          title: "غير مصرح",
+          description: "يجب تسجيل الدخول للوصول إلى لوحة الإدارة",
+          variant: "destructive",
+        });
+        navigate('/auth');
+        return;
+      }
+
+      if (user.email !== 'technoregiste@gmail.com') {
+        toast({
+          title: "وصول محظور",
+          description: "أنت لا تملك صلاحيات الوصول للوحة الإدارة",
+          variant: "destructive",
+        });
+        navigate('/dashboard');
+        return;
+      }
+    };
+
+    checkAdminAccess();
+  }, [user, navigate]);
+
+  useEffect(() => {
+    const fetchStartups = async () => {
+      try {
+        setLoading(true);
+        
+        // Get profiles data
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*');
+        
+        if (profilesError) throw profilesError;
+        
+        // For each profile, get their registration steps to calculate progress
+        const startupsWithProgress = await Promise.all(
+          profilesData.map(async (profile) => {
+            const { data: stepsData, error: stepsError } = await supabase
+              .from('registration_steps')
+              .select('*')
+              .eq('profile_id', profile.id);
+            
+            if (stepsError) throw stepsError;
+            
+            // Calculate progress
+            let progress = 0;
+            let status: 'pending' | 'in-progress' | 'completed' = 'pending';
+            
+            if (stepsData && stepsData.length > 0) {
+              const completedSteps = stepsData.filter(step => step.status === 'complete').length;
+              const inProgressSteps = stepsData.filter(step => step.status === 'progress' || step.status === 'in_progress').length;
+              
+              progress = Math.round((completedSteps / stepsData.length) * 100);
+              
+              if (progress === 100) {
+                status = 'completed';
+              } else if (progress > 0) {
+                status = 'in-progress';
+              }
+            }
+            
+            // Get user email
+            const { data: userData, error: userError } = await supabase
+              .from('auth.users')
+              .select('email')
+              .eq('id', profile.id)
+              .single();
+              
+            const email = userError ? 'N/A' : (userData?.email || 'N/A');
+            
+            return {
+              id: profile.id,
+              name: profile.company_name,
+              founderName: profile.founder_name,
+              phone: profile.phone,
+              email: email,
+              progress,
+              status,
+            };
+          })
+        );
+        
+        setStartups(startupsWithProgress);
+      } catch (error) {
+        console.error('Error fetching startups data:', error);
+        toast({
+          title: "خطأ في تحميل البيانات",
+          description: "حدث خطأ أثناء تحميل بيانات الشركات الناشئة",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (user && user.email === 'technoregiste@gmail.com') {
+      fetchStartups();
     }
-  ]);
+  }, [user]);
 
   // Function to get badge color based on status
   const getStatusBadge = (status: string, progress: number) => {
@@ -89,48 +154,58 @@ const AdminPanel = () => {
         <div className="bg-white rounded-xl shadow-card p-6 animate-fade-in">
           <h2 className="text-2xl font-semibold mb-6">الشركات الناشئة المسجلة</h2>
           
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">الرقم</TableHead>
-                  <TableHead className="text-right">اسم الشركة</TableHead>
-                  <TableHead className="text-right">اسم المؤسس</TableHead>
-                  <TableHead className="text-right">رقم الهاتف</TableHead>
-                  <TableHead className="text-right">البريد الإلكتروني</TableHead>
-                  <TableHead className="text-right">نسبة التقدم</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {startups.map((startup) => (
-                  <TableRow key={startup.id}>
-                    <TableCell className="font-medium">{startup.id}</TableCell>
-                    <TableCell>{startup.name}</TableCell>
-                    <TableCell>{startup.founderName}</TableCell>
-                    <TableCell className="ltr">{startup.phone}</TableCell>
-                    <TableCell className="ltr">{startup.email}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-full bg-secondary rounded-full h-2.5">
-                          <div 
-                            className={`h-2.5 rounded-full ${
-                              startup.progress >= 80 ? "bg-status-complete" : 
-                              startup.progress >= 40 ? "bg-status-progress" : 
-                              "bg-status-incomplete"
-                            }`}
-                            style={{ width: `${startup.progress}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm">{startup.progress}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(startup.status, startup.progress)}</TableCell>
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : startups.length === 0 ? (
+            <div className="text-center py-10 text-muted-foreground">
+              لا توجد شركات ناشئة مسجلة حاليًا
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">الرقم</TableHead>
+                    <TableHead className="text-right">اسم الشركة</TableHead>
+                    <TableHead className="text-right">اسم المؤسس</TableHead>
+                    <TableHead className="text-right">رقم الهاتف</TableHead>
+                    <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                    <TableHead className="text-right">نسبة التقدم</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {startups.map((startup, index) => (
+                    <TableRow key={startup.id}>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>{startup.name}</TableCell>
+                      <TableCell>{startup.founderName}</TableCell>
+                      <TableCell className="ltr">{startup.phone}</TableCell>
+                      <TableCell className="ltr">{startup.email}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-full bg-secondary rounded-full h-2.5">
+                            <div 
+                              className={`h-2.5 rounded-full ${
+                                startup.progress >= 80 ? "bg-status-complete" : 
+                                startup.progress >= 40 ? "bg-status-progress" : 
+                                "bg-status-incomplete"
+                              }`}
+                              style={{ width: `${startup.progress}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm">{startup.progress}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(startup.status, startup.progress)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
       </main>
     </div>

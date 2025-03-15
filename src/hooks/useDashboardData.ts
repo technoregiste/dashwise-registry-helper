@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { StepData, ProfileData, DbRegistrationStep } from '@/types/dashboard';
+import { StepData, ProfileData } from '@/types/dashboard';
 
 // Default steps data
 const defaultSteps: StepData[] = [
@@ -41,7 +40,7 @@ const defaultSteps: StepData[] = [
   {
     id: 2,
     title: 'اختيار الهيكل القانوني',
-    status: 'progress',
+    status: 'incomplete',
     description: 'يحدد الهيكل القانوني لشركتك كيفية إدارتها ومسؤولياتك المالية والقانونية. يجب عليك اختيار الشكل القانوني الذي يناسب حجم نشاطك، عدد المؤسسين، ومستوى المسؤولية التي ترغب في تحملها. هذا القرار يؤثر على طبيعة الضرائب، الالتزامات المالية، وسهولة التوسع مستقبلًا.',
     details: {
       steps: [
@@ -58,7 +57,7 @@ const defaultSteps: StepData[] = [
       cost: 'لا يوجد تكلفة خاصة باختيار نوع الشركة',
       timeframe: '24 ساعة',
       documents: [
-        { id: '2-1', name: 'لا توجد وثائق مطلوبة', checked: true }
+        { id: '2-1', name: 'لا توجد وثائق مطلوبة', checked: false }
       ],
       notes: [
         'إذا كنت غير متأكد من الخيار المناسب، يُنصح باستشارة مختص قانوني أو محاسب',
@@ -66,8 +65,8 @@ const defaultSteps: StepData[] = [
         'بمجرد اختيار الهيكل القانوني، سيكون من الصعب تغييره دون إعادة هيكلة الشركة، لذا يجب اتخاذ القرار بعناية'
       ],
       checklistItems: [
-        { id: '2-cl-1', text: 'تم الاطلاع على الخيارات القانونية المتاحة', checked: true },
-        { id: '2-cl-2', text: 'تم اختيار الهيكل القانوني المناسب', checked: true },
+        { id: '2-cl-1', text: 'تم الاطلاع على الخيارات القانونية المتاحة', checked: false },
+        { id: '2-cl-2', text: 'تم اختيار الهيكل القانوني المناسب', checked: false },
         { id: '2-cl-3', text: 'تم إعداد الوثائق اللازمة لهذه المرحلة', checked: false }
       ]
     }
@@ -77,7 +76,6 @@ const defaultSteps: StepData[] = [
     title: 'تحضير الوثائق الرسمية',
     status: 'incomplete',
     description: 'بعد اختيار اسم شركتك وهيكلها القانوني، تحتاج إلى تجهيز الوثائق المطلوبة لاستكمال عملية التسجيل. تأكد من أن جميع المستندات مستوفية للشروط القانونية لتجنب أي تأخير في الإجراءات. بعض هذه الوثائق تحتاج إلى تصديق رسمي لدى الموثق.',
-    error: 'عقد إيجار مقر الشركة مفقود',
     details: {
       steps: [
         'بطاقة التعريف الوطنية للمؤسسين والمسير',
@@ -89,8 +87,8 @@ const defaultSteps: StepData[] = [
       cost: 'تعتمد تكلفة هذه المرحلة على نوع الشركة و رسوم الموثق المختار بين (5,000 دج و20,000 دج)',
       timeframe: '3-7 أيام',
       documents: [
-        { id: '3-1', name: 'بطاقة التعريف الوطنية للمؤسسين والمسير', checked: true },
-        { id: '3-2', name: 'شهادة حجز الاسم (من البطاقة 1)', checked: true },
+        { id: '3-1', name: 'بطاقة التعريف الوطنية للمؤسسين والمسير', checked: false },
+        { id: '3-2', name: 'شهادة حجز الاسم (من البطاقة 1)', checked: false },
         { id: '3-3', name: 'عقد الإيجار أو سند الملكية او شهادة الاستفادة للمقر الرسمي', checked: false },
         { id: '3-4', name: 'عقد التأسيس والنظام الأساسي من الموثق', checked: false }
       ],
@@ -100,7 +98,7 @@ const defaultSteps: StepData[] = [
         'عقد التأسيس والنظام الأساسي يحددان قواعد تشغيل الشركة، لذا يجب مراجعتهما جيدًا قبل التوقيع'
       ],
       checklistItems: [
-        { id: '3-cl-1', text: 'تم استلام شهادة حجز الاسم', checked: true },
+        { id: '3-cl-1', text: 'تم استلام شهادة حجز الاسم', checked: false },
         { id: '3-cl-2', text: 'تم إعداد عقد الإيجار أو إثبات الملكية او الحصول على شهادة الاستفادة', checked: false },
         { id: '3-cl-3', text: 'تم توثيق عقد التأسيس والنظام الأساسي لدى الموثق', checked: false }
       ]
@@ -270,33 +268,47 @@ export function useDashboardData() {
         if (stepsError) throw stepsError;
 
         if (stepsData && stepsData.length > 0) {
-          const formattedSteps = stepsData.map((dbStep: any) => {
-            const defaultStep = defaultSteps.find(s => s.id === dbStep.step_id) || defaultSteps[0];
+          // First, ensure we have steps for all 7 steps (1-7)
+          const formattedSteps = [];
+          
+          for (let i = 1; i <= 7; i++) {
+            const dbStep = stepsData.find((step: any) => step.step_id === i);
+            const defaultStep = defaultSteps.find(s => s.id === i) || defaultSteps[0];
             
-            // Map database status to frontend status
-            let frontendStatus = 'incomplete';
-            if (dbStep.status === 'complete') {
-              frontendStatus = 'complete';
-            } else if (dbStep.status === 'progress' || dbStep.status === 'in_progress') {
-              frontendStatus = 'progress';
-            } else if (dbStep.status === 'pending') {
-              frontendStatus = 'incomplete';
-            }
-            
-            return {
-              ...defaultStep,
-              id: dbStep.step_id,
-              status: frontendStatus as any,
-              details: {
-                ...defaultStep.details,
-                documents: dbStep.documents || defaultStep.details?.documents,
-                checklistItems: dbStep.checklist_items || defaultStep.details?.checklistItems
+            if (dbStep) {
+              // Map database status to frontend status
+              let frontendStatus = 'incomplete';
+              if (dbStep.status === 'complete') {
+                frontendStatus = 'complete';
+              } else if (dbStep.status === 'progress' || dbStep.status === 'in_progress') {
+                frontendStatus = 'progress';
+              } else if (dbStep.status === 'pending' || dbStep.status === 'incomplete') {
+                frontendStatus = 'incomplete';
               }
-            };
-          });
+              
+              formattedSteps.push({
+                ...defaultStep,
+                id: i,
+                status: frontendStatus as any,
+                details: {
+                  ...defaultStep.details,
+                  documents: dbStep.documents || defaultStep.details?.documents,
+                  checklistItems: dbStep.checklist_items || defaultStep.details?.checklistItems
+                }
+              });
+            } else {
+              // If this step doesn't exist in the database, use the default
+              formattedSteps.push({
+                ...defaultStep,
+                id: i,
+                status: 'incomplete' as any
+              });
+            }
+          }
           
           setSteps(formattedSteps);
         } else {
+          // If no steps in database, use all default steps
           setSteps(defaultSteps);
         }
       } catch (error) {
@@ -306,6 +318,9 @@ export function useDashboardData() {
           description: "حدث خطأ أثناء تحميل بياناتك، يرجى المحاولة مرة أخرى لاحقًا",
           variant: "destructive",
         });
+        
+        // If error, fallback to default steps
+        setSteps(defaultSteps);
       } finally {
         setLoading(false);
       }
