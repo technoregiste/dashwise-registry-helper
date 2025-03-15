@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage }) => {
         title: "تم تسجيل الخروج",
         description: "تم تسجيل خروجك بنجاح من النظام",
       });
-      navigate('/');
+      navigate('/auth');
     } catch (error) {
       console.error('Error signing out:', error);
       toast({

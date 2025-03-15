@@ -3,14 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import RegistrationSteps from '@/components/dashboard/RegistrationSteps';
-import AiAssistant from '@/components/ai/AiAssistant';
 import { toast } from '@/hooks/use-toast';
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { HomeIcon, ExternalLinkIcon } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -55,10 +51,6 @@ const Dashboard = () => {
     setActiveStepIndex(index);
   };
 
-  const handleReturnToHome = () => {
-    navigate('/');
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary/30">
@@ -90,38 +82,8 @@ const Dashboard = () => {
             onDocumentToggle={handleDocumentToggle}
             onChecklistToggle={handleChecklistToggle}
           />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-5 bg-white shadow-card">
-              <h3 className="text-xl font-semibold text-center mb-4">تخطي التسجيل</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                إذا كنت ترغب في العودة إلى الصفحة الرئيسية وإنهاء عملية التسجيل، يمكنك النقر على الزر أدناه.
-              </p>
-              <Button onClick={handleReturnToHome} className="w-full" variant="outline">
-                <HomeIcon className="ml-2" size={16} />
-                العودة إلى الصفحة الرئيسية
-              </Button>
-            </Card>
-
-            <Card className="p-5 bg-white shadow-card">
-              <h3 className="text-xl font-semibold text-center mb-4">لوحة مدير الحاضنة</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                هذا القسم مخصص لمديري الحاضنة فقط. يرجى تسجيل الدخول باستخدام بيانات الاعتماد المقدمة.
-              </p>
-              <Button 
-                onClick={() => navigate('/admin')} 
-                className="w-full"
-                variant="secondary"
-              >
-                <ExternalLinkIcon className="ml-2" size={16} />
-                الدخول إلى لوحة الإدارة
-              </Button>
-            </Card>
-          </div>
         </div>
       </main>
-      
-      <AiAssistant />
     </div>
   );
 };

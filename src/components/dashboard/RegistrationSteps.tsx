@@ -3,7 +3,6 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import StepCard from './StepCard';
 import { StepData } from '@/types/dashboard';
-import { Separator } from '@/components/ui/separator';
 import { 
   FileText, 
   Building2, 
@@ -49,32 +48,32 @@ const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <div className={cn(className, "registration-steps")}>
       <h2 className="text-2xl font-semibold mb-4 text-center">خطوات التسجيل</h2>
       
-      {/* Navigation Bar */}
-      <div className="bg-white rounded-xl p-4 mb-6 shadow-card overflow-x-auto">
-        <div className="flex justify-between items-center min-w-max">
+      {/* Navigation Bar - Smaller Size */}
+      <div className="bg-white rounded-xl p-3 mb-6 shadow-card overflow-x-auto">
+        <div className="flex justify-between items-center min-w-max max-w-3xl mx-auto">
           {steps.map((step, index) => {
             const StepIcon = stepIcons[index]?.icon || FileText;
             return (
-              <div key={step.id} className="relative flex flex-col items-center">
+              <div key={step.id} className="relative flex flex-col items-center px-2">
                 <button
                   onClick={() => onStepNavigation(index)}
                   className={cn(
-                    "w-12 h-12 rounded-full mb-2 flex items-center justify-center transition-all",
+                    "w-10 h-10 rounded-full mb-2 flex items-center justify-center transition-all",
                     step.status === 'complete' ? "bg-status-complete text-white" :
                     step.status === 'progress' ? "bg-status-progress text-white" :
                     "bg-gray-100 text-gray-500",
                     activeStepIndex === index ? "ring-2 ring-primary ring-offset-2" : ""
                   )}
                 >
-                  <StepIcon size={20} />
+                  <StepIcon size={16} />
                 </button>
-                <span className="text-xs text-muted-foreground w-20 text-center">{step.title}</span>
+                <span className="text-xs text-muted-foreground w-16 text-center truncate">{step.title}</span>
                 
                 {/* Connecting line */}
                 {index < steps.length - 1 && (
                   <div 
                     className={cn(
-                      "absolute top-6 right-12 h-0.5 w-[calc(100%-1.5rem)]",
+                      "absolute top-5 right-10 h-0.5 w-[calc(100%-0.5rem)]",
                       step.status === 'complete' ? "bg-status-complete" : "bg-gray-200"
                     )}
                   ></div>
