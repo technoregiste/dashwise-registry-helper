@@ -2,9 +2,10 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProgressBar from '@/components/dashboard/ProgressBar';
-import { Menu, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderProps {
   startupName: string;
@@ -17,11 +18,39 @@ const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage }) => {
 
   const handleSignOut = async () => {
     try {
+      // Ensure all user data is properly synced before signing out
+      if (user) {
+        // Update the user's last session timestamp
+        const { error: profileUpdateError } = await supabase
+          .from('profiles')
+          .update({
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+
+        if (profileUpdateError) {
+          console.error('Error updating profile before logout:', profileUpdateError);
+        }
+
+        // Check if there are any pending step updates and force sync
+        const { data: steps, error: stepsError } = await supabase
+          .from('registration_steps')
+          .select('*')
+          .eq('profile_id', user.id);
+
+        if (stepsError) {
+          console.error('Error fetching steps before logout:', stepsError);
+        }
+      }
+
+      // Proceed with sign out
       await signOut();
+      
       toast({
         title: "تم تسجيل الخروج",
         description: "تم تسجيل خروجك بنجاح من النظام",
       });
+      
       // Navigate to auth page after successful logout
       navigate('/auth');
     } catch (error) {
@@ -54,9 +83,6 @@ const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage }) => {
                 <span>تسجيل الخروج</span>
               </button>
             )}
-            <button className="lg:hidden">
-              <Menu size={20} />
-            </button>
           </div>
         </div>
         

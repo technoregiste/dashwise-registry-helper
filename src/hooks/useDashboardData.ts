@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -242,6 +243,17 @@ export function useDashboardData() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Create an immediate database sync function
+  const syncToDatabase = useCallback(async (updatedSteps: StepData[]) => {
+    if (!user) return;
+
+    // Process and save each modified step to ensure data persistence
+    for (const step of updatedSteps) {
+      await updateStepInDatabase(step.id, step);
+    }
+  }, [user]);
+
+  // Fetch user data when user changes
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) return;
@@ -329,6 +341,25 @@ export function useDashboardData() {
     fetchUserData();
   }, [user]);
 
+  // When unmounting or before user leaves page, ensure data is synced
+  useEffect(() => {
+    const syncOnUnmount = () => {
+      if (user && steps.length > 0) {
+        syncToDatabase(steps);
+      }
+    };
+
+    // Add event listener for beforeunload to capture page closes
+    window.addEventListener('beforeunload', syncOnUnmount);
+    
+    // Return cleanup function
+    return () => {
+      window.removeEventListener('beforeunload', syncOnUnmount);
+      // Force sync on component unmount
+      syncOnUnmount();
+    };
+  }, [user, steps, syncToDatabase]);
+
   const updateStepInDatabase = async (stepId: number, updatedStep: any) => {
     if (!user) return;
 
@@ -385,6 +416,7 @@ export function useDashboardData() {
           
           const updatedStepWithStatus = updateStepStatus(updatedStep);
           
+          // Immediately update in database
           updateStepInDatabase(stepId, updatedStepWithStatus);
           
           return updatedStepWithStatus;
@@ -422,6 +454,7 @@ export function useDashboardData() {
           
           const updatedStepWithStatus = updateStepStatus(updatedStep);
           
+          // Immediately update in database
           updateStepInDatabase(stepId, updatedStepWithStatus);
           
           return updatedStepWithStatus;
@@ -477,6 +510,21 @@ export function useDashboardData() {
     loading,
     handleDocumentToggle,
     handleChecklistToggle,
-    handleStepClick
+    handleStepClick: useCallback((stepId: number) => {
+      const step = steps.find(s => s.id === stepId);
+      if (step) {
+        if (step.status === 'complete') {
+          toast({
+            title: `الخطوة ${stepId}: ${step.title}`,
+            description: "تم إكمال هذه الخطوة. يمكنك مراجعة أو تعديل المعلومات الخاصة بك.",
+          });
+        } else {
+          toast({
+            title: `الخطوة ${stepId}: ${step.title}`,
+            description: "لنكمل هذه الخطوة الآن.",
+          });
+        }
+      }
+    }, [steps])
   };
 }
