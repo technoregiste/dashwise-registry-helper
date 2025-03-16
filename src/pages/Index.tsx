@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,24 +29,13 @@ const Index = () => {
     seconds: 0
   });
   
-  // Refs for scroll-triggered animations
   const benefitsRef = useRef<HTMLDivElement>(null);
   const stepsRef = useRef<HTMLDivElement>(null);
   const [activeSection, setActiveSection] = useState<string>("hero");
   
-  // Parallax effect
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, -100]);
   
-  // For hero section scroll indicator
-  const scrollToNextSection = () => {
-    window.scrollTo({
-      top: window.innerHeight,
-      behavior: 'smooth'
-    });
-  };
-
-  // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdownTime(prev => {
@@ -68,7 +56,6 @@ const Index = () => {
               if (days > 0) {
                 days--;
               } else {
-                // Reset countdown when it reaches zero
                 days = 15;
                 hours = 8;
                 minutes = 30;
@@ -85,7 +72,6 @@ const Index = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Track active section based on scroll position
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY + window.innerHeight / 3;
@@ -109,7 +95,6 @@ const Index = () => {
     navigate(user ? '/dashboard' : '/auth');
   };
 
-  // Enhanced animation variants
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
@@ -139,18 +124,34 @@ const Index = () => {
     }
   };
   
-  const cardHover = {
-    rest: { scale: 1, boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.05)" },
+  const cardAnimation = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 100,
+        damping: 10
+      }
+    },
+    rest: { 
+      scale: 1, 
+      boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.05)" 
+    },
     hover: { 
       scale: 1.05, 
       boxShadow: "0px 10px 25px rgba(0, 0, 0, 0.1)",
-      transition: { type: "spring", stiffness: 300, damping: 20 }
+      transition: { 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 20 
+      }
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-secondary/20 relative overflow-hidden">
-      {/* Decorative Elements */}
       <motion.div 
         className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 z-0"
         animate={{ 
@@ -177,7 +178,6 @@ const Index = () => {
         }}
       />
       
-      {/* Fixed Navigation */}
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -248,7 +248,6 @@ const Index = () => {
         </div>
       </motion.header>
 
-      {/* Hero Section with Parallax */}
       <motion.section 
         id="hero"
         className="h-screen pt-20 pb-16 px-6 flex items-center relative"
@@ -325,7 +324,6 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Why This Site Section */}
       <motion.section 
         id="why"
         initial="hidden"
@@ -395,7 +393,6 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Benefits Section */}
       <motion.section 
         id="benefits"
         ref={benefitsRef}
@@ -418,12 +415,10 @@ const Index = () => {
             className="grid md:grid-cols-2 gap-6"
             variants={staggerContainer}
           >
-            {/* Cards with enhanced animations */}
             <motion.div 
-              variants={itemAnimation}
+              variants={cardAnimation}
               whileHover="hover"
               initial="rest"
-              variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -438,10 +433,9 @@ const Index = () => {
             </motion.div>
             
             <motion.div 
-              variants={itemAnimation}
+              variants={cardAnimation}
               whileHover="hover"
               initial="rest"
-              variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -456,10 +450,9 @@ const Index = () => {
             </motion.div>
             
             <motion.div 
-              variants={itemAnimation}
+              variants={cardAnimation}
               whileHover="hover"
               initial="rest"
-              variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -474,10 +467,9 @@ const Index = () => {
             </motion.div>
             
             <motion.div 
-              variants={itemAnimation}
+              variants={cardAnimation}
               whileHover="hover"
               initial="rest"
-              variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -492,10 +484,9 @@ const Index = () => {
             </motion.div>
             
             <motion.div 
-              variants={itemAnimation}
+              variants={cardAnimation}
               whileHover="hover"
               initial="rest"
-              variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -510,10 +501,9 @@ const Index = () => {
             </motion.div>
             
             <motion.div 
-              variants={itemAnimation}
+              variants={cardAnimation}
               whileHover="hover"
               initial="rest"
-              variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -530,7 +520,6 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Countdown Section with enhanced animation */}
       <motion.section 
         initial="hidden"
         whileInView="visible"
@@ -632,7 +621,6 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Steps Preview Section */}
       <motion.section 
         id="steps"
         ref={stepsRef}
@@ -722,7 +710,6 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Final CTA Section */}
       <motion.section 
         initial="hidden"
         whileInView="visible"
@@ -730,7 +717,6 @@ const Index = () => {
         variants={fadeIn}
         className="py-24 px-6 bg-gradient-to-br from-primary/5 to-primary/20 border-t border-primary/10 relative overflow-hidden"
       >
-        {/* Background floating elements */}
         <motion.div 
           className="absolute top-20 right-20 w-32 h-32 bg-primary/5 rounded-full z-0"
           animate={{ 
@@ -787,7 +773,6 @@ const Index = () => {
         </div>
       </motion.section>
       
-      {/* Footer */}
       <motion.footer
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -801,4 +786,3 @@ const Index = () => {
 };
 
 export default Index;
-
