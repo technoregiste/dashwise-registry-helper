@@ -423,7 +423,6 @@ const Index = () => {
               variants={itemAnimation}
               whileHover="hover"
               initial="rest"
-              animate="rest"
               variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
@@ -442,7 +441,6 @@ const Index = () => {
               variants={itemAnimation}
               whileHover="hover"
               initial="rest"
-              animate="rest"
               variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
@@ -461,7 +459,6 @@ const Index = () => {
               variants={itemAnimation}
               whileHover="hover"
               initial="rest"
-              animate="rest"
               variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
@@ -480,7 +477,6 @@ const Index = () => {
               variants={itemAnimation}
               whileHover="hover"
               initial="rest"
-              animate="rest"
               variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
@@ -499,7 +495,6 @@ const Index = () => {
               variants={itemAnimation}
               whileHover="hover"
               initial="rest"
-              animate="rest"
               variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
@@ -518,7 +513,6 @@ const Index = () => {
               variants={itemAnimation}
               whileHover="hover"
               initial="rest"
-              animate="rest"
               variants={cardHover}
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
@@ -807,3 +801,4 @@ const Index = () => {
 };
 
 export default Index;
+
