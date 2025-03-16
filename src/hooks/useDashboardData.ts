@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { StepData, ProfileData } from '@/types/dashboard';
+import { Json } from '@/integrations/supabase/types';
 
 // Default steps data
 const defaultSteps: StepData[] = [
@@ -401,15 +402,19 @@ export function useDashboardData() {
         dbStatus = 'pending';
       }
 
-      // Create new step in database - Fix: Pass an array with one object
+      // Fix: Convert documents and checklist items to valid JSON objects for the database
+      const documents = step.details?.documents ? step.details.documents as unknown as Json : null;
+      const checklistItems = step.details?.checklistItems ? step.details.checklistItems as unknown as Json : null;
+
+      // Create new step in database - Pass an array with one properly typed object
       const { error } = await supabase
         .from('registration_steps')
         .upsert([{
           profile_id: profileId,
           step_id: stepId,
           status: dbStatus,
-          documents: step.details?.documents || null,
-          checklist_items: step.details?.checklistItems || null,
+          documents: documents,
+          checklist_items: checklistItems,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }]);
@@ -474,15 +479,19 @@ export function useDashboardData() {
 
     while (retries < maxRetries && !success) {
       try {
-        // Fix: Pass an array with one object to upsert
+        // Fix: Convert documents and checklist items to valid JSON objects for the database
+        const documents = updatedStep.details?.documents ? updatedStep.details.documents as unknown as Json : null;
+        const checklistItems = updatedStep.details?.checklistItems ? updatedStep.details.checklistItems as unknown as Json : null;
+
+        // Fix: Pass an array with one properly typed object to upsert
         const { error } = await supabase
           .from('registration_steps')
           .upsert([{
             profile_id: user.id,
             step_id: stepId,
             status: dbStatus,
-            documents: updatedStep.details?.documents || null,
-            checklist_items: updatedStep.details?.checklistItems || null,
+            documents: documents,
+            checklist_items: checklistItems,
             completed_at: updatedStep.status === 'complete' ? new Date().toISOString() : null,
             updated_at: new Date().toISOString()
           }]);
