@@ -401,10 +401,10 @@ export function useDashboardData() {
         dbStatus = 'pending';
       }
 
-      // Create new step in database
+      // Create new step in database - Fix: Pass an array with one object
       const { error } = await supabase
         .from('registration_steps')
-        .upsert({
+        .upsert([{
           profile_id: profileId,
           step_id: stepId,
           status: dbStatus,
@@ -412,7 +412,7 @@ export function useDashboardData() {
           checklist_items: step.details?.checklistItems || null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        });
+        }]);
 
       if (error) throw error;
     } catch (error) {
@@ -474,9 +474,10 @@ export function useDashboardData() {
 
     while (retries < maxRetries && !success) {
       try {
+        // Fix: Pass an array with one object to upsert
         const { error } = await supabase
           .from('registration_steps')
-          .upsert({
+          .upsert([{
             profile_id: user.id,
             step_id: stepId,
             status: dbStatus,
@@ -484,7 +485,7 @@ export function useDashboardData() {
             checklist_items: updatedStep.details?.checklistItems || null,
             completed_at: updatedStep.status === 'complete' ? new Date().toISOString() : null,
             updated_at: new Date().toISOString()
-          });
+          }]);
 
         if (error) throw error;
         success = true;
