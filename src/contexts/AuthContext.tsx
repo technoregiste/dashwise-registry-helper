@@ -30,6 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Check if user is admin
         if (data.session?.user) {
+          console.log('User metadata:', data.session.user.app_metadata);
           setIsAdmin(data.session.user.app_metadata?.role === 'admin' || false);
         }
       } catch (error) {
@@ -50,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Check if user is admin
         if (newSession?.user) {
+          console.log('User metadata on change:', newSession.user.app_metadata);
           setIsAdmin(newSession.user.app_metadata?.role === 'admin' || false);
         } else {
           setIsAdmin(false);

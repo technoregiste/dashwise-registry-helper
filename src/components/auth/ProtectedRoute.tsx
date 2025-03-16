@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -23,9 +24,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         navigate('/auth');
       } else if (requireAdmin && !isAdmin) {
         // If admin route but user is not admin, redirect to dashboard
+        console.log('User not admin, redirecting to dashboard');
         navigate('/dashboard');
       } else if (isAdmin && location.pathname === '/dashboard') {
         // If admin user tries to access regular dashboard, redirect to admin dashboard
+        console.log('Admin user accessing dashboard, redirecting to admin');
         navigate('/admin');
       }
     }
@@ -34,7 +37,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground">جاري تحميل البيانات...</p>
+        </div>
       </div>
     );
   }
