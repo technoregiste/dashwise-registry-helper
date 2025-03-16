@@ -36,6 +36,13 @@ const Index = () => {
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, -100]);
   
+  const scrollToNextSection = () => {
+    window.scrollTo({
+      top: window.innerHeight,
+      behavior: 'smooth'
+    });
+  };
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdownTime(prev => {
@@ -134,10 +141,6 @@ const Index = () => {
         stiffness: 100,
         damping: 10
       }
-    },
-    rest: { 
-      scale: 1, 
-      boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.05)" 
     },
     hover: { 
       scale: 1.05, 
@@ -344,7 +347,7 @@ const Index = () => {
             className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
             variants={fadeIn}
           >
-            تبسيط عملية التسجيل للشركات الناشئة في الجزائر – دليل عملي خطوة بخطوة لمساعدتك على الانطلاق بسرعة.
+            تبسيط عملية التسجيل للشركات الناشئة في الجزائر ��� دليل عملي خطوة بخطوة لمساعدتك على الانطلاق بسرعة.
           </motion.p>
           
           <motion.div 
