@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import RegistrationSteps from '@/components/dashboard/RegistrationSteps';
@@ -17,10 +17,18 @@ const Dashboard = () => {
     loading,
     handleDocumentToggle,
     handleChecklistToggle,
-    handleStepClick
+    handleStepClick,
+    syncToDatabase
   } = useDashboardData();
   
   const [activeStepIndex, setActiveStepIndex] = useState(0);
+
+  // Sync data handler for the Header component
+  const handleSyncData = useCallback(async () => {
+    if (syncToDatabase) {
+      await syncToDatabase(steps);
+    }
+  }, [syncToDatabase, steps]);
 
   useEffect(() => {
     if (!loading && profile) {
@@ -66,6 +74,7 @@ const Dashboard = () => {
       <Header 
         startupName={profile?.company_name || "شركتك الناشئة"}
         progressPercentage={progressPercentage}
+        onSyncData={handleSyncData}
       />
       
       <main className="flex-1 container mx-auto px-4 py-8">

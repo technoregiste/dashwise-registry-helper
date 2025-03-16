@@ -10,16 +10,33 @@ import { supabase } from '@/integrations/supabase/client';
 interface HeaderProps {
   startupName: string;
   progressPercentage: number;
+  onSyncData?: () => Promise<void>;
 }
 
-const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage }) => {
+const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage, onSyncData }) => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
+      // Show loading toast
+      const loadingToastId = toast({
+        title: "جاري الخروج...",
+        description: "يتم حفظ بياناتك وتسجيل الخروج",
+      });
+
       // Ensure all user data is properly synced before signing out
       if (user) {
+        // First try to run any provided sync function
+        if (onSyncData) {
+          try {
+            await onSyncData();
+            console.log('Data synced successfully before logout');
+          } catch (syncError) {
+            console.error('Error syncing data before logout:', syncError);
+          }
+        }
+
         // Update the user's last session timestamp
         const { error: profileUpdateError } = await supabase
           .from('profiles')
@@ -32,14 +49,20 @@ const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage }) => {
           console.error('Error updating profile before logout:', profileUpdateError);
         }
 
-        // Check if there are any pending step updates and force sync
-        const { data: steps, error: stepsError } = await supabase
-          .from('registration_steps')
-          .select('*')
-          .eq('profile_id', user.id);
+        // Make sure all steps are in sync
+        try {
+          const { data: steps, error: stepsError } = await supabase
+            .from('registration_steps')
+            .select('*')
+            .eq('profile_id', user.id);
 
-        if (stepsError) {
-          console.error('Error fetching steps before logout:', stepsError);
+          if (stepsError) {
+            console.error('Error fetching steps before logout:', stepsError);
+          } else {
+            console.log(`Verified ${steps?.length || 0} steps are synced before logout`);
+          }
+        } catch (error) {
+          console.error('Error during final steps verification:', error);
         }
       }
 

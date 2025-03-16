@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -242,18 +242,47 @@ export function useDashboardData() {
   const [steps, setSteps] = useState<StepData[]>([]);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const pendingSyncs = useRef<Record<number, NodeJS.Timeout>>({});
+  const isMounted = useRef(true);
 
-  // Create an immediate database sync function
+  // Create an immediate database sync function with debounce protection
   const syncToDatabase = useCallback(async (updatedSteps: StepData[]) => {
-    if (!user) return;
+    if (!user || !isMounted.current) return;
 
-    // Process and save each modified step to ensure data persistence
-    for (const step of updatedSteps) {
-      await updateStepInDatabase(step.id, step);
+    try {
+      // Process and save each modified step to ensure data persistence
+      const syncPromises = updatedSteps.map(step => updateStepInDatabase(step.id, step));
+      await Promise.all(syncPromises);
+      console.log('All steps synced to database successfully');
+    } catch (error) {
+      console.error('Error during batch sync to database:', error);
     }
   }, [user]);
 
-  // Fetch user data when user changes
+  // Debounced sync function to avoid too many database calls
+  const debouncedSync = useCallback((stepId: number, step: StepData) => {
+    // Clear any pending sync for this step
+    if (pendingSyncs.current[stepId]) {
+      clearTimeout(pendingSyncs.current[stepId]);
+    }
+
+    // Set a new timeout for this step
+    pendingSyncs.current[stepId] = setTimeout(() => {
+      updateStepInDatabase(stepId, step);
+      delete pendingSyncs.current[stepId];
+    }, 500); // 500ms debounce
+  }, []);
+
+  // Immediate sync for critical changes
+  const immediateSync = useCallback((stepId: number, step: StepData) => {
+    if (pendingSyncs.current[stepId]) {
+      clearTimeout(pendingSyncs.current[stepId]);
+      delete pendingSyncs.current[stepId];
+    }
+    return updateStepInDatabase(stepId, step);
+  }, []);
+
+  // Initialize user data when user changes
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) return;
@@ -261,6 +290,7 @@ export function useDashboardData() {
       try {
         setLoading(true);
         
+        // Fetch user profile data
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -271,6 +301,7 @@ export function useDashboardData() {
         
         setProfile(profileData);
 
+        // Fetch user steps data
         const { data: stepsData, error: stepsError } = await supabase
           .from('registration_steps')
           .select('*')
@@ -280,7 +311,7 @@ export function useDashboardData() {
         if (stepsError) throw stepsError;
 
         if (stepsData && stepsData.length > 0) {
-          // First, ensure we have steps for all 7 steps (1-7)
+          // Process and format steps from database
           const formattedSteps = [];
           
           for (let i = 1; i <= 7; i++) {
@@ -298,6 +329,7 @@ export function useDashboardData() {
                 frontendStatus = 'incomplete';
               }
               
+              // Create step with data from database, falling back to defaults when needed
               formattedSteps.push({
                 ...defaultStep,
                 id: i,
@@ -309,19 +341,29 @@ export function useDashboardData() {
                 }
               });
             } else {
-              // If this step doesn't exist in the database, use the default
-              formattedSteps.push({
+              // Create a new step in the database if it doesn't exist
+              const newStep = {
                 ...defaultStep,
                 id: i,
                 status: 'incomplete' as any
-              });
+              };
+              
+              formattedSteps.push(newStep);
+              
+              // Initialize the step in the database
+              initializeStepInDatabase(i, user.id, newStep);
             }
           }
           
           setSteps(formattedSteps);
         } else {
-          // If no steps in database, use all default steps
+          // If no steps in database, use all default steps and initialize them
           setSteps(defaultSteps);
+          
+          // Initialize all steps in the database
+          defaultSteps.forEach(step => {
+            initializeStepInDatabase(step.id, user.id, step);
+          });
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -339,9 +381,46 @@ export function useDashboardData() {
     };
 
     fetchUserData();
+    
+    return () => {
+      // Cleanup function
+      isMounted.current = false;
+    };
   }, [user]);
 
-  // When unmounting or before user leaves page, ensure data is synced
+  // Initialize a new step in the database
+  const initializeStepInDatabase = async (stepId: number, profileId: string, step: StepData) => {
+    try {
+      // Map frontend status to database status
+      let dbStatus = 'pending';
+      if (step.status === 'complete') {
+        dbStatus = 'complete';
+      } else if (step.status === 'progress') {
+        dbStatus = 'progress';
+      } else if (step.status === 'incomplete') {
+        dbStatus = 'pending';
+      }
+
+      // Create new step in database
+      const { error } = await supabase
+        .from('registration_steps')
+        .upsert({
+          profile_id: profileId,
+          step_id: stepId,
+          status: dbStatus,
+          documents: step.details?.documents || null,
+          checklist_items: step.details?.checklistItems || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error(`Error initializing step ${stepId} in database:`, error);
+    }
+  };
+
+  // Ensure data is synced when user navigates away or closes the browser
   useEffect(() => {
     const syncOnUnmount = () => {
       if (user && steps.length > 0) {
@@ -349,19 +428,35 @@ export function useDashboardData() {
       }
     };
 
-    // Add event listener for beforeunload to capture page closes
+    // Add event listener for beforeunload to capture page closes/refreshes
     window.addEventListener('beforeunload', syncOnUnmount);
+
+    // Add event listener for visibilitychange to capture tab switching or closing
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        syncOnUnmount();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     // Return cleanup function
     return () => {
       window.removeEventListener('beforeunload', syncOnUnmount);
-      // Force sync on component unmount
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      
+      // Final sync on component unmount
       syncOnUnmount();
+      
+      // Clear all pending syncs
+      Object.keys(pendingSyncs.current).forEach(key => {
+        clearTimeout(pendingSyncs.current[parseInt(key)]);
+      });
     };
   }, [user, steps, syncToDatabase]);
 
+  // Update step in database with retries
   const updateStepInDatabase = async (stepId: number, updatedStep: any) => {
-    if (!user) return;
+    if (!user || !isMounted.current) return;
 
     // Map frontend status to database status
     let dbStatus = 'pending';
@@ -373,30 +468,50 @@ export function useDashboardData() {
       dbStatus = 'pending';
     }
 
-    try {
-      const { error } = await supabase
-        .from('registration_steps')
-        .update({
-          status: dbStatus,
-          documents: updatedStep.details?.documents || null,
-          checklist_items: updatedStep.details?.checklistItems || null,
-          completed_at: updatedStep.status === 'complete' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('profile_id', user.id)
-        .eq('step_id', stepId);
+    const maxRetries = 3;
+    let retries = 0;
+    let success = false;
 
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error updating step in database:', error);
-      toast({
-        title: "خطأ في حفظ البيانات",
-        description: "حدث خطأ أثناء حفظ تقدمك، يرجى المحاولة مرة أخرى",
-        variant: "destructive",
-      });
+    while (retries < maxRetries && !success) {
+      try {
+        const { error } = await supabase
+          .from('registration_steps')
+          .upsert({
+            profile_id: user.id,
+            step_id: stepId,
+            status: dbStatus,
+            documents: updatedStep.details?.documents || null,
+            checklist_items: updatedStep.details?.checklistItems || null,
+            completed_at: updatedStep.status === 'complete' ? new Date().toISOString() : null,
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) throw error;
+        success = true;
+      } catch (error) {
+        console.error(`Error updating step ${stepId} in database (retry ${retries + 1}/${maxRetries}):`, error);
+        retries++;
+        
+        if (retries >= maxRetries) {
+          if (isMounted.current) {
+            toast({
+              title: "خطأ في حفظ البيانات",
+              description: "حدث خطأ أثناء حفظ تقدمك، يرجى المحاولة مرة أخرى",
+              variant: "destructive",
+            });
+          }
+          break;
+        }
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retries)));
+      }
     }
+
+    return success;
   };
 
+  // Handle document toggle
   const handleDocumentToggle = (stepId: number, docId: string, checked: boolean) => {
     setSteps(prevSteps => {
       const updatedSteps = prevSteps.map(step => {
@@ -416,8 +531,8 @@ export function useDashboardData() {
           
           const updatedStepWithStatus = updateStepStatus(updatedStep);
           
-          // Immediately update in database
-          updateStepInDatabase(stepId, updatedStepWithStatus);
+          // Debounced sync to database
+          debouncedSync(stepId, updatedStepWithStatus);
           
           return updatedStepWithStatus;
         }
@@ -435,6 +550,7 @@ export function useDashboardData() {
     }
   };
 
+  // Handle checklist toggle
   const handleChecklistToggle = (stepId: number, itemId: string, checked: boolean) => {
     setSteps(prevSteps => {
       const updatedSteps = prevSteps.map(step => {
@@ -454,8 +570,8 @@ export function useDashboardData() {
           
           const updatedStepWithStatus = updateStepStatus(updatedStep);
           
-          // Immediately update in database
-          updateStepInDatabase(stepId, updatedStepWithStatus);
+          // Debounced sync to database
+          debouncedSync(stepId, updatedStepWithStatus);
           
           return updatedStepWithStatus;
         }
@@ -473,6 +589,7 @@ export function useDashboardData() {
     }
   };
 
+  // Update step status based on completed items
   const updateStepStatus = (step: StepData): StepData => {
     const checklistComplete = step.details?.checklistItems?.every(item => item.checked) ?? false;
     const documentsComplete = step.details?.documents?.every(doc => doc.checked) ?? false;
@@ -487,7 +604,8 @@ export function useDashboardData() {
     }
   };
 
-  const handleStepClick = (stepId: number) => {
+  // Handle step click
+  const handleStepClick = useCallback((stepId: number) => {
     const step = steps.find(s => s.id === stepId);
     if (step) {
       if (step.status === 'complete') {
@@ -502,7 +620,7 @@ export function useDashboardData() {
         });
       }
     }
-  };
+  }, [steps]);
 
   return {
     steps,
@@ -510,21 +628,7 @@ export function useDashboardData() {
     loading,
     handleDocumentToggle,
     handleChecklistToggle,
-    handleStepClick: useCallback((stepId: number) => {
-      const step = steps.find(s => s.id === stepId);
-      if (step) {
-        if (step.status === 'complete') {
-          toast({
-            title: `الخطوة ${stepId}: ${step.title}`,
-            description: "تم إكمال هذه الخطوة. يمكنك مراجعة أو تعديل المعلومات الخاصة بك.",
-          });
-        } else {
-          toast({
-            title: `الخطوة ${stepId}: ${step.title}`,
-            description: "لنكمل هذه الخطوة الآن.",
-          });
-        }
-      }
-    }, [steps])
+    handleStepClick,
+    syncToDatabase // Expose this to allow manual syncing from other components
   };
 }
