@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -9,12 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("startup");
   const [isLogin, setIsLogin] = useState(true);
+  const [isAdminLogin, setIsAdminLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   
   // Startup owner fields
@@ -28,13 +28,12 @@ const Auth = () => {
   // Admin fields
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+  const [adminName, setAdminName] = useState("");
 
   useEffect(() => {
-    // التحقق مما إذا كان المستخدم مسجل الدخول بالفعل
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        // Check if user is an admin
         try {
           const { data: userData } = await supabase.auth.getUser();
           const isAdmin = userData?.user?.app_metadata?.role === 'admin';
@@ -60,7 +59,6 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        // تسجيل الدخول
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -75,7 +73,6 @@ const Auth = () => {
         
         navigate('/dashboard');
       } else {
-        // إنشاء حساب جديد
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -113,30 +110,47 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Admin login
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: adminEmail,
-        password: adminPassword,
-      });
+      if (isAdminLogin) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: adminEmail,
+          password: adminPassword,
+        });
 
-      if (error) throw error;
-      
-      // Check if user has admin role
-      const user = data.user;
-      const isAdmin = user?.app_metadata?.role === 'admin';
-      
-      if (!isAdmin) {
-        // Sign out if not admin
-        await supabase.auth.signOut();
-        throw new Error("لا تملك صلاحيات إدارية. يرجى تسجيل الدخول كمسؤول.");
+        if (error) throw error;
+        
+        const user = data.user;
+        const isAdmin = user?.app_metadata?.role === 'admin';
+        
+        if (!isAdmin) {
+          await supabase.auth.signOut();
+          throw new Error("لا تملك صلاحيات إدارية. يرجى تسجيل الدخول كمسؤول.");
+        }
+        
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: "مرحباً بك في لوحة التحكم الإدارية",
+        });
+        
+        navigate('/admin');
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email: adminEmail,
+          password: adminPassword,
+          options: {
+            data: {
+              name: adminName,
+              role: 'admin',
+            },
+          },
+        });
+
+        if (error) throw error;
+        
+        toast({
+          title: "تم إنشاء حساب المسؤول بنجاح",
+          description: "يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب",
+        });
       }
-      
-      toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: "مرحباً بك في لوحة التحكم الإدارية",
-      });
-      
-      navigate('/admin');
     } catch (error: any) {
       toast({
         title: "خطأ في تسجيل الدخول",
@@ -148,7 +162,6 @@ const Auth = () => {
     }
   };
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -174,9 +187,21 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-secondary/30 p-6 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 z-0"></div>
-      <div className="absolute bottom-1/4 left-0 w-80 h-80 bg-secondary/10 rounded-full -ml-40 z-0"></div>
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="absolute top-6 left-6 z-30"
+      >
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft size={16} />
+          العودة للصفحة الرئيسية
+        </Button>
+      </motion.div>
       
       <div className="w-full max-w-md relative z-10">
         <motion.div 
@@ -368,22 +393,22 @@ const Auth = () => {
                           )}
                         </Button>
                       </motion.div>
-                    </form>
 
-                    <motion.div 
-                      className="mt-4 text-center"
-                      variants={itemVariants}
-                    >
-                      <button
-                        type="button"
-                        className="text-sm text-primary hover:underline"
-                        onClick={() => setIsLogin(!isLogin)}
+                      <motion.div 
+                        className="mt-4 text-center"
+                        variants={itemVariants}
                       >
-                        {isLogin
-                          ? "ليس لديك حساب؟ إنشاء حساب جديد"
-                          : "لديك حساب بالفعل؟ تسجيل الدخول"}
-                      </button>
-                    </motion.div>
+                        <button
+                          type="button"
+                          className="text-sm text-primary hover:underline"
+                          onClick={() => setIsLogin(!isLogin)}
+                        >
+                          {isLogin
+                            ? "ليس لديك حساب؟ إنشاء حساب جديد"
+                            : "لديك حساب بالفعل؟ تسجيل الدخول"}
+                        </button>
+                      </motion.div>
+                    </form>
                   </Card>
                 </TabsContent>
               </motion.div>
@@ -430,6 +455,29 @@ const Auth = () => {
                         />
                       </motion.div>
 
+                      <AnimatePresence>
+                        {!isAdminLogin && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <Label htmlFor="adminName" className="block text-sm font-medium mb-1">
+                              اسم المسؤول
+                            </Label>
+                            <Input
+                              id="adminName"
+                              value={adminName}
+                              onChange={(e) => setAdminName(e.target.value)}
+                              required
+                              placeholder="أدخل اسم المسؤول"
+                              className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       <motion.div 
                         variants={itemVariants}
                         className="pt-2"
@@ -447,9 +495,24 @@ const Auth = () => {
                               جاري التحميل...
                             </>
                           ) : (
-                            "تسجيل دخول المسؤول"
+                            isAdminLogin ? "تسجيل دخول المسؤول" : "إنشاء حساب مسؤول"
                           )}
                         </Button>
+                      </motion.div>
+
+                      <motion.div 
+                        className="mt-4 text-center"
+                        variants={itemVariants}
+                      >
+                        <button
+                          type="button"
+                          className="text-sm text-primary hover:underline"
+                          onClick={() => setIsAdminLogin(!isAdminLogin)}
+                        >
+                          {isAdminLogin
+                            ? "ليس لديك حساب مسؤول؟ أنشئ حساب جديد"
+                            : "لديك حساب مسؤول بالفعل؟ تسجيل الدخول"}
+                        </button>
                       </motion.div>
                     </form>
                   </Card>

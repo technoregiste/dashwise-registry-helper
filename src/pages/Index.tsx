@@ -155,99 +155,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-secondary/20 relative overflow-hidden">
-      <motion.div 
-        className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 z-0"
-        animate={{ 
-          scale: [1, 1.2, 1], 
-          opacity: [0.3, 0.5, 0.3] 
-        }}
-        transition={{ 
-          duration: 15, 
-          repeat: Infinity,
-          repeatType: "reverse" 
-        }}
-      />
-      <motion.div 
-        className="absolute bottom-1/4 left-0 w-80 h-80 bg-secondary/10 rounded-full -ml-40 z-0"
-        animate={{ 
-          scale: [1, 1.3, 1], 
-          opacity: [0.2, 0.4, 0.2] 
-        }}
-        transition={{ 
-          duration: 20, 
-          repeat: Infinity,
-          repeatType: "reverse",
-          delay: 5
-        }}
-      />
-      
       <motion.header 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="fixed top-0 left-0 right-0 py-4 px-6 bg-white/80 backdrop-blur-md shadow-sm z-50"
       >
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-7xl mx-auto flex justify-center items-center">
           <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
             <span className="bg-primary text-white h-8 w-8 rounded-lg flex items-center justify-center">ت</span>
             <span>technoregiste</span>
           </h1>
-          
-          <nav className="hidden md:flex items-center space-x-8">
-            <motion.a 
-              href="#why" 
-              className={`text-sm font-medium relative ${activeSection === "why" ? "text-primary" : "text-gray-600"}`}
-              whileHover={{ scale: 1.05 }}
-            >
-              لماذا نحن؟
-              {activeSection === "why" && (
-                <motion.div 
-                  layoutId="navIndicator"
-                  className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
-                />
-              )}
-            </motion.a>
-            <motion.a 
-              href="#benefits" 
-              className={`text-sm font-medium relative ${activeSection === "benefits" ? "text-primary" : "text-gray-600"}`}
-              whileHover={{ scale: 1.05 }}
-            >
-              المميزات
-              {activeSection === "benefits" && (
-                <motion.div 
-                  layoutId="navIndicator"
-                  className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
-                />
-              )}
-            </motion.a>
-            <motion.a 
-              href="#steps" 
-              className={`text-sm font-medium relative ${activeSection === "steps" ? "text-primary" : "text-gray-600"}`}
-              whileHover={{ scale: 1.05 }}
-            >
-              الخطوات
-              {activeSection === "steps" && (
-                <motion.div 
-                  layoutId="navIndicator"
-                  className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
-                />
-              )}
-            </motion.a>
-          </nav>
-          
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button 
-              size="sm" 
-              onClick={handleCTA}
-              className="text-sm px-4 py-2 rounded-xl shadow-md bg-primary hover:bg-primary/90 transition-all duration-300"
-            >
-              ابدأ الآن
-              <ArrowRight size={16} />
-            </Button>
-          </motion.div>
         </div>
       </motion.header>
 
