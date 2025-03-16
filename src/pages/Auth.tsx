@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -73,15 +74,12 @@ const Auth = () => {
         
         navigate('/dashboard');
       } else {
+        // Create new startup user
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
-              founder_name: founderName,
-              company_name: companyName,
-              company_number: companyNumber,
-              phone: phone,
               role: 'startup',
             },
           },
@@ -89,12 +87,29 @@ const Auth = () => {
 
         if (error) throw error;
         
+        // Create user profile in separate call
+        const { error: profileError } = await supabase
+          .from('profiles_users')
+          .insert({
+            id: (await supabase.auth.getUser()).data.user?.id,
+            founder_name: founderName,
+            company_name: companyName,
+            company_number: companyNumber,
+            phone: phone,
+          });
+        
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          throw new Error('فشل في إنشاء ملف المستخدم. يرجى المحاولة مرة أخرى.');
+        }
+        
         toast({
           title: "تم إنشاء الحساب بنجاح",
           description: "يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب",
         });
       }
     } catch (error: any) {
+      console.error('Error in startup auth:', error);
       toast({
         title: "خطأ في العملية",
         description: error.message || "حدث خطأ غير متوقع",
@@ -133,12 +148,12 @@ const Auth = () => {
         
         navigate('/admin');
       } else {
+        // Create new admin user
         const { error } = await supabase.auth.signUp({
           email: adminEmail,
           password: adminPassword,
           options: {
             data: {
-              name: adminName,
               role: 'admin',
             },
           },
@@ -146,12 +161,27 @@ const Auth = () => {
 
         if (error) throw error;
         
+        // Create admin profile in separate call
+        const { error: profileError } = await supabase
+          .from('profiles_admin')
+          .insert({
+            id: (await supabase.auth.getUser()).data.user?.id,
+            admin_name: adminName,
+            admin_email: adminEmail,
+          });
+        
+        if (profileError) {
+          console.error('Error creating admin profile:', profileError);
+          throw new Error('فشل في إنشاء ملف المسؤول. يرجى المحاولة مرة أخرى.');
+        }
+        
         toast({
           title: "تم إنشاء حساب المسؤول بنجاح",
           description: "يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب",
         });
       }
     } catch (error: any) {
+      console.error('Error in admin auth:', error);
       toast({
         title: "خطأ في تسجيل الدخول",
         description: error.message || "حدث خطأ أثناء تسجيل الدخول كمسؤول",
@@ -210,13 +240,6 @@ const Auth = () => {
           animate="visible"
           className="mb-8 text-center"
         >
-          <motion.div
-            variants={itemVariants}
-            className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg transform rotate-3"
-          >
-            <span className="text-white font-bold text-3xl">ت</span>
-          </motion.div>
-          
           <motion.h1 
             variants={itemVariants}
             className="text-3xl font-bold mb-2"

@@ -162,8 +162,7 @@ const Index = () => {
         className="fixed top-0 left-0 right-0 py-4 px-6 bg-white/80 backdrop-blur-md shadow-sm z-50"
       >
         <div className="max-w-7xl mx-auto flex justify-center items-center">
-          <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-            <span className="bg-primary text-white h-8 w-8 rounded-lg flex items-center justify-center">ت</span>
+          <h1 className="text-2xl font-bold text-primary">
             <span>technoregiste</span>
           </h1>
         </div>
@@ -175,22 +174,6 @@ const Index = () => {
         style={{ y }}
       >
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
-            className="mb-6"
-          >
-            <motion.div 
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg transform rotate-3"
-            >
-              <span className="text-white font-bold text-3xl">ت</span>
-            </motion.div>
-          </motion.div>
-          
           <motion.h1 
             className="text-5xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 leading-tight"
             initial={{ opacity: 0, y: 30 }}
@@ -326,10 +309,10 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <motion.h2 
             variants={fadeIn}
-            className="text-3xl font-bold mb-8 text-center relative inline-block mx-auto"
+            className="text-3xl font-bold mb-8 text-center mx-auto"
           >
             فوائد تسجيل شركتك رسميًا
-            <span className="absolute bottom-0 left-0 w-full h-1 bg-primary/30 rounded-full"></span>
+            <span className="block h-1 w-24 bg-primary/30 rounded-full mx-auto mt-2"></span>
           </motion.h2>
           
           <motion.div 
@@ -339,7 +322,6 @@ const Index = () => {
             <motion.div 
               variants={cardAnimation}
               whileHover="hover"
-              initial="rest"
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -356,7 +338,6 @@ const Index = () => {
             <motion.div 
               variants={cardAnimation}
               whileHover="hover"
-              initial="rest"
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -373,7 +354,6 @@ const Index = () => {
             <motion.div 
               variants={cardAnimation}
               whileHover="hover"
-              initial="rest"
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -390,7 +370,6 @@ const Index = () => {
             <motion.div 
               variants={cardAnimation}
               whileHover="hover"
-              initial="rest"
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -407,7 +386,6 @@ const Index = () => {
             <motion.div 
               variants={cardAnimation}
               whileHover="hover"
-              initial="rest"
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
@@ -424,7 +402,6 @@ const Index = () => {
             <motion.div 
               variants={cardAnimation}
               whileHover="hover"
-              initial="rest"
               className="bg-white p-6 rounded-xl shadow-card hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start">
