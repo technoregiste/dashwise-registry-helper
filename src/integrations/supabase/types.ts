@@ -33,36 +33,12 @@ export type Database = {
             foreignKeyName: "co_founders_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
-            referencedRelation: "profiles_users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      profiles_admin: {
-        Row: {
-          admin_email: string | null
-          admin_name: string
-          created_at: string
-          id: string
-          updated_at: string
-        }
-        Insert: {
-          admin_email?: string | null
-          admin_name: string
-          created_at?: string
-          id: string
-          updated_at?: string
-        }
-        Update: {
-          admin_email?: string | null
-          admin_name?: string
-          created_at?: string
-          id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      profiles_users: {
+      profiles: {
         Row: {
           company_name: string
           company_number: string
@@ -131,7 +107,7 @@ export type Database = {
             foreignKeyName: "registration_steps_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
-            referencedRelation: "profiles_users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
