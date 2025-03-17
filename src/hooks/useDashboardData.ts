@@ -293,14 +293,20 @@ export function useDashboardData() {
         
         // Fetch user profile data
         const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
+          .from('profiles_users')
           .select('*')
           .eq('id', user.id)
           .single();
 
         if (profileError) throw profileError;
         
-        setProfile(profileData);
+        setProfile({
+          id: profileData.id,
+          founder_name: profileData.founder_name,
+          company_name: profileData.company_name,
+          company_number: profileData.company_number,
+          phone: profileData.phone
+        });
 
         // Fetch user steps data
         const { data: stepsData, error: stepsError } = await supabase

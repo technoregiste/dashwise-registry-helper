@@ -60,7 +60,7 @@ const AdminPanel = () => {
         
         // Get all profiles
         const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
+          .from('profiles_users')
           .select('*');
 
         if (profilesError) throw profilesError;
