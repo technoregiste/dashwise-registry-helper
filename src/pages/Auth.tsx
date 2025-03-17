@@ -15,7 +15,7 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   
-  // Startup owner fields
+  // Form fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [founderName, setFounderName] = useState("");
@@ -34,49 +34,52 @@ const Auth = () => {
     checkSession();
   }, [navigate]);
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      // Step 1: Sign up with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-        if (error) throw error;
-        
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك مرة أخرى في منصة تسجيل الشركات",
-        });
-        
-        navigate('/dashboard');
-      } else {
-        // Create new startup user
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
+      if (error) throw error;
+
+      if (data.user) {
+        // Step 2: Create a profile record manually
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
               founder_name: founderName,
               company_name: companyName,
               company_number: companyNumber,
               phone: phone,
-            },
-          },
-        });
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+          ]);
 
-        if (error) throw error;
-        
-        toast({
-          title: "تم إنشاء الحساب بنجاح",
-          description: "يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب",
-        });
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+          // Even if profile creation fails, we've already created the auth user
+          // So we inform the user but don't treat it as a complete failure
+          toast({
+            title: "تم إنشاء الحساب جزئياً",
+            description: "تم إنشاء الحساب ولكن هناك مشكلة في البيانات الإضافية. يرجى التحقق من بريدك الإلكتروني ثم الاتصال بالدعم.",
+          });
+        } else {
+          toast({
+            title: "تم إنشاء الحساب بنجاح",
+            description: "يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب",
+          });
+        }
       }
     } catch (error: any) {
-      console.error('Error in auth:', error);
+      console.error('Error in signup:', error);
       toast({
         title: "خطأ في العملية",
         description: error.message || "حدث خطأ غير متوقع",
@@ -84,6 +87,44 @@ const Auth = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "تم تسجيل الدخول بنجاح",
+        description: "مرحباً بك مرة أخرى في منصة تسجيل الشركات",
+      });
+      
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error('Error in login:', error);
+      toast({
+        title: "خطأ في العملية",
+        description: error.message || "حدث خطأ غير متوقع",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAuth = (e: React.FormEvent) => {
+    if (isLogin) {
+      handleLogin(e);
+    } else {
+      handleSignUp(e);
     }
   };
 

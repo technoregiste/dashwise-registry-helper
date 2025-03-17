@@ -21,7 +21,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // تحميل الجلسة الحالية عند تحميل التطبيق
+    // Load current session on app initialization
     const getInitialSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsAdmin(data.session.user.app_metadata?.role === 'admin' || false);
         }
       } catch (error) {
-        console.error('خطأ في تحميل حالة المصادقة:', error);
+        console.error('Error loading auth state:', error);
       } finally {
         setLoading(false);
       }
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     getInitialSession();
 
-    // الاستماع إلى تغييرات حالة المصادقة
+    // Listen to auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         console.log('Auth state changed:', event);
