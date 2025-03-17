@@ -30,8 +30,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Check if user is admin
         if (data.session?.user) {
-          console.log('User metadata:', data.session.user.app_metadata);
-          setIsAdmin(data.session.user.app_metadata?.role === 'admin' || false);
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', data.session.user.id)
+            .single();
+            
+          setIsAdmin(profileData?.role === 'admin' || false);
         }
       } catch (error) {
         console.error('Error loading auth state:', error);
@@ -51,8 +56,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Check if user is admin
         if (newSession?.user) {
-          console.log('User metadata on change:', newSession.user.app_metadata);
-          setIsAdmin(newSession.user.app_metadata?.role === 'admin' || false);
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', newSession.user.id)
+            .single();
+            
+          setIsAdmin(profileData?.role === 'admin' || false);
         } else {
           setIsAdmin(false);
         }

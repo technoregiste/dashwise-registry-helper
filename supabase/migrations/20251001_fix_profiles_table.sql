@@ -13,6 +13,7 @@ BEGIN
             company_name TEXT,
             company_number TEXT,
             phone TEXT,
+            role TEXT DEFAULT 'user',
             created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
         );
@@ -23,6 +24,7 @@ BEGIN
             ALTER TABLE profiles ADD COLUMN IF NOT EXISTS company_name TEXT;
             ALTER TABLE profiles ADD COLUMN IF NOT EXISTS company_number TEXT;
             ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+            ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
             ALTER TABLE profiles ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT now();
             ALTER TABLE profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT now();
         EXCEPTION WHEN OTHERS THEN
@@ -36,13 +38,14 @@ $$;
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, founder_name, company_name, company_number, phone, created_at, updated_at)
+  INSERT INTO public.profiles (id, founder_name, company_name, company_number, phone, role, created_at, updated_at)
   VALUES (
     NEW.id, 
     NEW.raw_user_meta_data->>'founder_name', 
     NEW.raw_user_meta_data->>'company_name', 
     NEW.raw_user_meta_data->>'company_number', 
-    NEW.raw_user_meta_data->>'phone', 
+    NEW.raw_user_meta_data->>'phone',
+    COALESCE(NEW.raw_user_meta_data->>'role', 'user'),
     NOW(), 
     NOW()
   )
@@ -51,6 +54,7 @@ BEGIN
     company_name = EXCLUDED.company_name,
     company_number = EXCLUDED.company_number,
     phone = EXCLUDED.phone,
+    role = EXCLUDED.role,
     updated_at = NOW();
   RETURN NEW;
 END;

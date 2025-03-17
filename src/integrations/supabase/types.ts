@@ -33,6 +33,13 @@ export type Database = {
             foreignKeyName: "co_founders_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
+            referencedRelation: "admin_view_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "co_founders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -46,6 +53,7 @@ export type Database = {
           founder_name: string
           id: string
           phone: string
+          role: string | null
           updated_at: string
         }
         Insert: {
@@ -55,6 +63,7 @@ export type Database = {
           founder_name: string
           id: string
           phone: string
+          role?: string | null
           updated_at?: string
         }
         Update: {
@@ -64,6 +73,7 @@ export type Database = {
           founder_name?: string
           id?: string
           phone?: string
+          role?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -107,6 +117,13 @@ export type Database = {
             foreignKeyName: "registration_steps_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
+            referencedRelation: "admin_view_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registration_steps_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -114,7 +131,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_view_profiles: {
+        Row: {
+          company_name: string | null
+          company_number: string | null
+          created_at: string | null
+          email: string | null
+          founder_name: string | null
+          id: string | null
+          phone: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_emails: {

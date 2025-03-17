@@ -9,11 +9,13 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowLeft } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Form fields
   const [email, setEmail] = useState("");
@@ -22,12 +24,24 @@ const Auth = () => {
   const [companyName, setCompanyName] = useState("");
   const [companyNumber, setCompanyNumber] = useState("");
   const [phone, setPhone] = useState("");
+  const [adminName, setAdminName] = useState("");
 
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        navigate('/dashboard');
+        // If user is admin, redirect to admin dashboard
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.session.user.id)
+          .single();
+          
+        if (!error && profileData?.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       }
     };
     
@@ -43,39 +57,38 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            founder_name: isAdmin ? adminName : founderName,
+            company_name: isAdmin ? null : companyName,
+            company_number: isAdmin ? null : companyNumber,
+            phone: isAdmin ? null : phone,
+            role: isAdmin ? 'admin' : 'user'
+          }
+        }
       });
 
       if (error) throw error;
 
       if (data.user) {
-        // Step 2: Create a profile record manually
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              founder_name: founderName,
-              company_name: companyName,
-              company_number: companyNumber,
-              phone: phone,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          ]);
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          // Even if profile creation fails, we've already created the auth user
-          // So we inform the user but don't treat it as a complete failure
-          toast({
-            title: "تم إنشاء الحساب جزئياً",
-            description: "تم إنشاء الحساب ولكن هناك مشكلة في البيانات الإضافية. يرجى التحقق من بريدك الإلكتروني ثم الاتصال بالدعم.",
-          });
-        } else {
-          toast({
-            title: "تم إنشاء الحساب بنجاح",
-            description: "يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب",
-          });
+        toast({
+          title: "تم إنشاء الحساب بنجاح",
+          description: "يرجى التحقق من بريدك الإلكتروني لتأكيد الحساب",
+        });
+        
+        // Auto login the user
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (!loginError) {
+          // Redirect based on role
+          if (isAdmin) {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
         }
       }
     } catch (error: any) {
@@ -95,7 +108,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -107,7 +120,18 @@ const Auth = () => {
         description: "مرحباً بك مرة أخرى في منصة تسجيل الشركات",
       });
       
-      navigate('/dashboard');
+      // Redirect based on role
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.session?.user.id)
+        .single();
+        
+      if (!profileError && profileData?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       console.error('Error in login:', error);
       toast({
@@ -148,6 +172,19 @@ const Auth = () => {
         stiffness: 300,
         damping: 24
       }
+    }
+  };
+
+  const handleAccountTypeToggle = (checked: boolean) => {
+    setIsAdmin(checked);
+    // Reset form fields when switching account types
+    if (checked) {
+      setCompanyName("");
+      setCompanyNumber("");
+      setPhone("");
+      setFounderName("");
+    } else {
+      setAdminName("");
     }
   };
 
@@ -236,76 +273,116 @@ const Auth = () => {
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.3 }}
+                      className="flex items-center justify-between space-x-2 py-2"
                     >
-                      <Label htmlFor="founderName" className="block text-sm font-medium mb-1">
-                        اسم المؤسس
+                      <Label htmlFor="is-admin" className="text-sm font-medium">
+                        تسجيل كمسؤول النظام
                       </Label>
-                      <Input
-                        id="founderName"
-                        value={founderName}
-                        onChange={(e) => setFounderName(e.target.value)}
-                        required
-                        placeholder="أدخل اسم المؤسس"
-                        className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                      <Switch 
+                        id="is-admin" 
+                        checked={isAdmin}
+                        onCheckedChange={handleAccountTypeToggle}
                       />
                     </motion.div>
+                    
+                    {isAdmin ? (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Label htmlFor="adminName" className="block text-sm font-medium mb-1">
+                          اسم المسؤول
+                        </Label>
+                        <Input
+                          id="adminName"
+                          value={adminName}
+                          onChange={(e) => setAdminName(e.target.value)}
+                          required
+                          placeholder="أدخل اسم المسؤول"
+                          className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                        />
+                      </motion.div>
+                    ) : (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Label htmlFor="founderName" className="block text-sm font-medium mb-1">
+                            اسم المؤسس
+                          </Label>
+                          <Input
+                            id="founderName"
+                            value={founderName}
+                            onChange={(e) => setFounderName(e.target.value)}
+                            required
+                            placeholder="أدخل اسم المؤسس"
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </motion.div>
 
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3, delay: 0.1 }}
-                    >
-                      <Label htmlFor="companyName" className="block text-sm font-medium mb-1">
-                        اسم الشركة
-                      </Label>
-                      <Input
-                        id="companyName"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        required
-                        placeholder="أدخل اسم الشركة"
-                        className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                      />
-                    </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3, delay: 0.1 }}
+                        >
+                          <Label htmlFor="companyName" className="block text-sm font-medium mb-1">
+                            اسم الشركة
+                          </Label>
+                          <Input
+                            id="companyName"
+                            value={companyName}
+                            onChange={(e) => setCompanyName(e.target.value)}
+                            required
+                            placeholder="أدخل اسم الشركة"
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </motion.div>
 
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3, delay: 0.2 }}
-                    >
-                      <Label htmlFor="companyNumber" className="block text-sm font-medium mb-1">
-                        رقم السجل التجاري
-                      </Label>
-                      <Input
-                        id="companyNumber"
-                        value={companyNumber}
-                        onChange={(e) => setCompanyNumber(e.target.value)}
-                        required
-                        placeholder="أدخل رقم السجل التجاري"
-                        className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                      />
-                    </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3, delay: 0.2 }}
+                        >
+                          <Label htmlFor="companyNumber" className="block text-sm font-medium mb-1">
+                            رقم السجل التجاري
+                          </Label>
+                          <Input
+                            id="companyNumber"
+                            value={companyNumber}
+                            onChange={(e) => setCompanyNumber(e.target.value)}
+                            required
+                            placeholder="أدخل رقم السجل التجاري"
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </motion.div>
 
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3, delay: 0.3 }}
-                    >
-                      <Label htmlFor="phone" className="block text-sm font-medium mb-1">
-                        رقم الهاتف
-                      </Label>
-                      <Input
-                        id="phone"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required
-                        placeholder="أدخل رقم الهاتف"
-                        className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                      />
-                    </motion.div>
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3, delay: 0.3 }}
+                        >
+                          <Label htmlFor="phone" className="block text-sm font-medium mb-1">
+                            رقم الهاتف
+                          </Label>
+                          <Input
+                            id="phone"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            required
+                            placeholder="أدخل رقم الهاتف"
+                            className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                          />
+                        </motion.div>
+                      </>
+                    )}
                   </>
                 )}
               </AnimatePresence>
