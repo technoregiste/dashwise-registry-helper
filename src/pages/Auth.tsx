@@ -26,6 +26,43 @@ const Auth = () => {
   const [phone, setPhone] = useState("");
   const [adminName, setAdminName] = useState("");
 
+  // Define animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 24
+      }
+    }
+  };
+
+  const handleAccountTypeToggle = (checked: boolean) => {
+    setIsAdmin(checked);
+    // Reset form fields when switching account types
+    if (checked) {
+      setCompanyName("");
+      setCompanyNumber("");
+      setPhone("");
+      setFounderName("");
+    } else {
+      setAdminName("");
+    }
+  };
+
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
@@ -172,42 +209,6 @@ const Auth = () => {
       handleLogin(e);
     } else {
       handleSignUp(e);
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 24
-      }
-    }
-  };
-
-  const handleAccountTypeToggle = (checked: boolean) => {
-    setIsAdmin(checked);
-    // Reset form fields when switching account types
-    if (checked) {
-      setCompanyName("");
-      setCompanyNumber("");
-      setPhone("");
-      setFounderName("");
-    } else {
-      setAdminName("");
     }
   };
 
@@ -454,43 +455,6 @@ const Auth = () => {
       </div>
     </div>
   );
-
-  // Define animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 24
-      }
-    }
-  };
-
-  function handleAccountTypeToggle(checked: boolean) {
-    setIsAdmin(checked);
-    // Reset form fields when switching account types
-    if (checked) {
-      setCompanyName("");
-      setCompanyNumber("");
-      setPhone("");
-      setFounderName("");
-    } else {
-      setAdminName("");
-    }
-  }
 };
 
 export default Auth;
