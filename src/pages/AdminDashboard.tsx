@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from "@/integrations/supabase/client";
+import { calculateProgress } from '@/utils/progressCalculator';
 import {
   Table,
   TableBody,
@@ -16,7 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader2, LogOut, RefreshCw, UserPlus } from 'lucide-react';
-import { calculateProgress } from '@/pages/Dashboard';
 
 interface CompanyProfile {
   id: string;
