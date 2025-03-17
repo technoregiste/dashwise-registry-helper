@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -293,7 +292,7 @@ export function useDashboardData() {
         
         // Fetch user profile data
         const { data: profileData, error: profileError } = await supabase
-          .from('profiles_users')
+          .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();

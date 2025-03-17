@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({ startupName, progressPercentage, onSync
 
         // Update the user's last session timestamp
         const { error: profileUpdateError } = await supabase
-          .from('profiles_users')
+          .from('profiles')
           .update({
             updated_at: new Date().toISOString()
           })
