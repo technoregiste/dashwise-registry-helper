@@ -48,14 +48,7 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'role', 'user'),
     NOW(), 
     NOW()
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    founder_name = EXCLUDED.founder_name,
-    company_name = EXCLUDED.company_name,
-    company_number = EXCLUDED.company_number,
-    phone = EXCLUDED.phone,
-    role = EXCLUDED.role,
-    updated_at = NOW();
+  );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

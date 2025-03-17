@@ -20,23 +20,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const checkAdminStatus = async (userId: string) => {
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+        
+      if (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+      }
+      
+      return profileData?.role === 'admin' || false;
+    } catch (error) {
+      console.error('Exception checking admin status:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     // Load current session on app initialization
     const getInitialSession = async () => {
       try {
+        console.log('Getting initial session...');
         const { data } = await supabase.auth.getSession();
         setSession(data.session);
         setUser(data.session?.user ?? null);
         
         // Check if user is admin
         if (data.session?.user) {
-          const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', data.session.user.id)
-            .single();
-            
-          setIsAdmin(profileData?.role === 'admin' || false);
+          const isUserAdmin = await checkAdminStatus(data.session.user.id);
+          setIsAdmin(isUserAdmin);
+          console.log('User admin status:', isUserAdmin);
         }
       } catch (error) {
         console.error('Error loading auth state:', error);
@@ -56,13 +73,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Check if user is admin
         if (newSession?.user) {
-          const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', newSession.user.id)
-            .single();
-            
-          setIsAdmin(profileData?.role === 'admin' || false);
+          const isUserAdmin = await checkAdminStatus(newSession.user.id);
+          setIsAdmin(isUserAdmin);
+          console.log('User admin status updated:', isUserAdmin);
         } else {
           setIsAdmin(false);
         }

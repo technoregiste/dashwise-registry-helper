@@ -53,23 +53,40 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      console.log("Starting sign up process");
+      
+      // Create metadata based on account type
+      const metadata = isAdmin 
+        ? { 
+            founder_name: adminName,
+            role: 'admin' 
+          }
+        : {
+            founder_name: founderName,
+            company_name: companyName,
+            company_number: companyNumber,
+            phone: phone,
+            role: 'user'
+          };
+      
+      console.log("Sign up metadata:", metadata);
+      
       // Step 1: Sign up with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            founder_name: isAdmin ? adminName : founderName,
-            company_name: isAdmin ? null : companyName,
-            company_number: isAdmin ? null : companyNumber,
-            phone: isAdmin ? null : phone,
-            role: isAdmin ? 'admin' : 'user'
-          }
+          data: metadata
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase signup error:", error);
+        throw error;
+      }
 
+      console.log("Sign up response:", data);
+      
       if (data.user) {
         toast({
           title: "تم إنشاء الحساب بنجاح",
@@ -77,18 +94,24 @@ const Auth = () => {
         });
         
         // Auto login the user
+        console.log("Attempting auto-login");
         const { error: loginError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
-        if (!loginError) {
-          // Redirect based on role
-          if (isAdmin) {
-            navigate('/admin');
-          } else {
-            navigate('/dashboard');
-          }
+        if (loginError) {
+          console.error("Auto-login error:", loginError);
+          throw loginError;
+        }
+        
+        console.log("Auto-login successful");
+        
+        // Redirect based on role
+        if (isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
         }
       }
     } catch (error: any) {
@@ -124,7 +147,7 @@ const Auth = () => {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', data.session?.user.id)
+        .eq('id', data.user?.id)
         .single();
         
       if (!profileError && profileData?.role === 'admin') {
@@ -431,6 +454,43 @@ const Auth = () => {
       </div>
     </div>
   );
+
+  // Define animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 24
+      }
+    }
+  };
+
+  function handleAccountTypeToggle(checked: boolean) {
+    setIsAdmin(checked);
+    // Reset form fields when switching account types
+    if (checked) {
+      setCompanyName("");
+      setCompanyNumber("");
+      setPhone("");
+      setFounderName("");
+    } else {
+      setAdminName("");
+    }
+  }
 };
 
 export default Auth;

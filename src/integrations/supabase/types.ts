@@ -9,42 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      co_founders: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          profile_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          profile_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          profile_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "co_founders_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "admin_view_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "co_founders_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           company_name: string
